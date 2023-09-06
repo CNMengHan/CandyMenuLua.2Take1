@@ -604,6 +604,11 @@ end
 return network.has_control_of_entity(h)
 end
 
+if menu.is_trusted_mode_enabled() == false then
+	menu.notify("当前脚本处于未信任模式!")
+else
+end
+
 function s_coords(i, p)
     req.ctrl(i)
     entity.set_entity_velocity(i, v3())
@@ -758,7 +763,7 @@ kkkbojb = c.pdf("MPED崩溃","action",crashCrash.id,function(feat,pid)
 			pedhash = entity.get_entity_model_hash(allpeds[i])
 			if pedhash == 0x92991B72 then
 			entity.delete_entity(allpeds[i])
-				end
+			end
 		end
 		menu.notify("Done","Candy Menu VIP",5,61000)
 	end)
@@ -1118,7 +1123,7 @@ frozen = menu.add_feature("冻结","toggle",playerlist[pid].id,function(feat)
 	feat.on = false
 end)
 
-crashmenu = menu.add_feature("崩溃", "parent", playerlist[pid].id,function(feat)
+crashmenu = menu.add_feature("崩溃选项", "parent", playerlist[pid].id,function(feat)
 end)
 
 heiping11 = menu.add_feature("11","toggle",crashmenu.id,function(f)
@@ -1789,12 +1794,12 @@ end)
 
 menu.add_feature("致命崩溃","action",crashmenu.id,function()
 menu.notify("崩溃已开始,请远离玩家,请勿观看玩家 " .. player.get_player_name(pid), "", 30, RGBAToInt(0, 255, 255, 255))
-    pos = player.get_player_coords(pid)
+	pos = player.get_player_coords(pid)
 	mypos = player.get_player_coords(player.player_id())
 	pedmy = player.get_player_ped(player.player_id())
 	local ppos = player.get_player_coords(pid)
 	ZPOS = pos.z
-	if pos.z == -50.0 or pos.z == -180.0 or pos.z == -0.0 then 
+	if pos.z == -50.0 or pos.z == -180.0 or pos.z == -0.0 then
 		local L_time = 0
 		while true do
 			entity.set_entity_coords_no_offset(pedmy,pos)
@@ -1819,15 +1824,15 @@ menu.notify("崩溃已开始,请远离玩家,请勿观看玩家 " .. player.get_
 	entity.set_entity_coords_no_offset(player.get_player_ped(player.player_id()),ppos)
 	entity.freeze_entity(player.get_player_ped(player.player_id()), true)
 	for i = 0,20 do
-	fire.add_explosion(player.get_player_coords(pid),2, true, false, 0, player.get_player_ped(pid))
-	script.trigger_script_event(0xc50f74ca, pid, {pid, 0, 30583, 0, 0, 0, -328966, 1132039228, 0})
-	script.trigger_script_event(0x8638a0ab, pid, {pid, 0, 30583, 0, 0, 0, -328966, 1132039228, 0})
-	script.trigger_script_event(0xc50f74ca, pid, {23135423, 3, 827870001, 2022580431, -918761645, 1754244778, 827870001, 1754244778,  23135423, 827870001, 23135423})
-	npc = Cped(26, 0xE7A963D9,pos,0)
-	network.request_control_of_entity(npc)
-	entity.freeze_entity(npc)
+		fire.add_explosion(player.get_player_coords(pid),2, true, false, 0, player.get_player_ped(pid))
+		script.trigger_script_event(0xc50f74ca, pid, {pid, 0, 30583, 0, 0, 0, -328966, 1132039228, 0})
+		script.trigger_script_event(0x8638a0ab, pid, {pid, 0, 30583, 0, 0, 0, -328966, 1132039228, 0})
+		script.trigger_script_event(0xc50f74ca, pid, {23135423, 3, 827870001, 2022580431, -918761645, 1754244778, 827870001, 1754244778,  23135423, 827870001, 23135423})
+		npc = Cped(26, 0xE7A963D9,pos,0)
+		network.request_control_of_entity(npc)
+		entity.freeze_entity(npc)
 	end
-    system.wait(4000)
+	system.wait(4000)
 	allpeds = ped.get_all_peds()
 	for i = 1, #allpeds  do
 		pedhash = entity.get_entity_model_hash(allpeds[i])
@@ -3182,7 +3187,7 @@ entity.attach_entity_to_entity(shotaro, shotarocar, 0, v3(0,0,0), v3(0,0,0), tru
 entity.attach_entity_to_entity(shotaro1, shotarocar, 0, v3(0,0,0), v3(0,0,0), true, true, false, 0, true)
 end)
 
-teleportcarpp = menu.add_feature("传送", "parent", playerlist[pid].id,function(feat)
+teleportcarpp = menu.add_feature("传送选项", "parent", playerlist[pid].id,function(feat)
 end)
 
 chuansong_player2= menu.add_feature("传送到玩家","action",teleportcarpp.id,function()
@@ -3242,25 +3247,25 @@ end
 k.on = false	
 end)
 
-spoof = menu.add_feature("恶搞", "parent", playerlist[pid].id,function(feat)
+spoof = menu.add_feature("恶搞选项", "parent", playerlist[pid].id,function(feat)
 end)
 
 spoof_kill=menu.add_feature("车辆撞击",'toggle',spoof.id,function(a)
-        while a.on do
-            system.yield(0)
-            local rot=entity.get_entity_rotation(player.get_player_ped(pid))
-            rot:transformRotToDir()
-            rot=v3(rot.x*3,rot.y*3,rot.z*3)
-            if requestmodel(1663218586) then
-                spoof_veh_kill=vehicle.create_vehicle(1663218586,player.get_player_coords(pid)-rot,0,true,false)
-                entity.set_entity_rotation(spoof_veh_kill,entity.get_entity_rotation(player.get_player_ped(pid)))
-                vehicle.set_vehicle_forward_speed(spoof_veh_kill,99999999)
-                system.yield(400)
-                fire.add_explosion(entity.get_entity_coords(spoof_veh_kill),8,true,true,0,player.get_player_ped(pid))
-                system.yield(600)
-                entity.delete_entity(spoof_veh_kill)
-            end
-        end
+	while a.on do
+		system.yield(0)
+		local rot=entity.get_entity_rotation(player.get_player_ped(pid))
+		rot:transformRotToDir()
+		rot=v3(rot.x*3,rot.y*3,rot.z*3)
+		if requestmodel(1663218586) then
+			spoof_veh_kill=vehicle.create_vehicle(1663218586,player.get_player_coords(pid)-rot,0,true,false)
+			entity.set_entity_rotation(spoof_veh_kill,entity.get_entity_rotation(player.get_player_ped(pid)))
+			vehicle.set_vehicle_forward_speed(spoof_veh_kill,99999999)
+			system.yield(400)
+			fire.add_explosion(entity.get_entity_coords(spoof_veh_kill),8,true,true,0,player.get_player_ped(pid))
+			system.yield(600)
+			entity.delete_entity(spoof_veh_kill)
+		end
+	end
 end)
 
 blackhole = menu.add_feature("死亡黑洞","toggle",spoof.id,function(k)
@@ -3826,12 +3831,12 @@ pos = player.get_player_coords(pid)
 fire.add_explosion(pos, 0, true, false, 0, pedp)		
 end)
 		
-fuckchat= c.df("侮辱玩家","action",spoof.id,function(k)		
-playername = player.get_player_name(pid)		
-playertxt = playername.."哒咩"		
-for i = 0 , 20 do	
-network.send_chat_message(playertxt,false)	
-end	
+fuckchat = c.df("哒咩","action",spoof.id,function(k)		
+	playername = player.get_player_name(pid)		
+	playertxt = playername.."哒咩"		
+	for i = 0 , 20 do	
+		network.send_chat_message(playertxt,false)	
+	end	
 end)
 
 frozen = menu.add_feature("困住玩家","action",spoof.id,function()
@@ -3927,7 +3932,7 @@ entity.attach_entity_to_entity(npc6,coffin, 0, v3(-0.55,-0.5,-0.6),v3(0.0,0,0.0)
 entity.freeze_entity(npc6, true)
 end)
 
-vehiclecar = menu.add_feature("载具", "parent", playerlist[pid].id,function(feat)
+vehiclecar = menu.add_feature("载具选项", "parent", playerlist[pid].id,function(feat)
 end)
 
 LockDoorforall = menu.add_feature("载具锁门","action",vehiclecar.id,function()
@@ -4132,7 +4137,7 @@ vehicle.set_vehicle_engine_on(veh, true, true, true)
 end
 end)
 
-isFriend = menu.add_feature("友好", "parent", playerlist[pid].id, function(feat)
+isFriend = menu.add_feature("友好选项", "parent", playerlist[pid].id, function(feat)
 end)
 
 RegainHealth = menu.add_feature("半无敌", "toggle", isFriend.id, function(feat)
@@ -4144,9 +4149,35 @@ RegainHealth = menu.add_feature("半无敌", "toggle", isFriend.id, function(fea
 	feat.on = false
 end)
 
+FakeReport = menu.add_feature("虚假报告", "parent", playerlist[pid].id, function(feat)
+end)
+
+FakeReport1 = menu.add_feature("正在尝试崩溃", "action", FakeReport.id, function(feat)		
+	playername = player.get_player_name(pid)		
+	playertxt1 = "检测到恶意玩家 " ..playername.. " 正在尝试崩溃2TAKE1VIP用户 ¦"
+	playertxt2 = "Malicious cheat player detected " ..playername.. " trying to crash current user ¦"
+	network.send_chat_message(playertxt1, false)
+	network.send_chat_message(playertxt2, false)
+end)
+
+FakeReport2 = menu.add_feature("阻止全局崩溃", "action", FakeReport.id, function(feat)		
+	playername = player.get_player_name(pid)		
+	playertxt1 = "已阻止恶意玩家 " ..playername.. " 的全局玩家崩溃事件 ¦"
+	playertxt2 = "Blocked global crash event for malicious player: " ..playername.. " ¦"
+	network.send_chat_message(playertxt1, false)
+	network.send_chat_message(playertxt2, false)
+end)
+
 Removeplayer = menu.add_feature("糖果踢" , "action", playerlist[pid].id,function()
+	RemoveplayerName = player.get_player_name(pid)
+	player.set_player_as_modder(pid, 1)
+	system.yield(100)
 	network.force_remove_player(pid)
-	menu.notify("Done")
+	system.yield(0)
+	network.force_remove_player(pid)
+	system.yield(50)
+	network.network_session_kick_player(pid)
+	menu.notify("Kick " ..RemoveplayerName.. " Done")
 end)
 
 biaoji = menu.add_feature("标记玩家" , "action", playerlist[pid].id,function()
