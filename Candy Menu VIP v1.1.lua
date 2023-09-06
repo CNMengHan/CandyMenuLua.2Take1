@@ -3930,16 +3930,24 @@ end)
 vehiclecar = menu.add_feature("载具", "parent", playerlist[pid].id,function(feat)
 end)
 
+LockDoorforall = menu.add_feature("载具锁门","action",vehiclecar.id,function()
+	pedp = player.get_player_ped(pid)
+	playercar = ped.get_vehicle_ped_is_using(pedp)
+	get_control_of_entity(playercar, 500)
+	vehicle.set_vehicle_doors_locked_for_all_players(playercar, true)
+	menu.notify("Done")
+end)
+
 drivecarairsrike = menu.add_feature("禁用载具","action",vehiclecar.id,function()
-pos = player.get_player_coords(pid)
-local offset = v3(0,0,0)
-local rot = v3(0.0,0,0.0)
-local pedp = player.get_player_ped(pid)
-demiball = object.create_object(148511758,pos,true,false)
-get_control_of_entity(demiball, 300)
-entity.set_entity_god_mode(demiball, true)
-entity.set_entity_visible(demiball,false)
-entity.attach_entity_to_entity(demiball, pedp, 0, offset, rot, true, true, false, 0, true)
+	pos = player.get_player_coords(pid)
+	local offset = v3(0,0,0)
+	local rot = v3(0.0,0,0.0)
+	local pedp = player.get_player_ped(pid)
+	demiball = object.create_object(148511758,pos,true,false)
+	get_control_of_entity(demiball, 300)
+	entity.set_entity_god_mode(demiball, true)
+	entity.set_entity_visible(demiball,false)
+	entity.attach_entity_to_entity(demiball, pedp, 0, offset, rot, true, true, false, 0, true)
 end)
 
 getcar = menu.add_feature("驾驶载具","action",vehiclecar.id,function(k)
@@ -4124,24 +4132,36 @@ vehicle.set_vehicle_engine_on(veh, true, true, true)
 end
 end)
 
+isFriend = menu.add_feature("友好", "parent", playerlist[pid].id, function(feat)
+end)
+
+RegainHealth = menu.add_feature("半无敌", "toggle", isFriend.id, function(feat)
+	while feat.on do
+		local pedp = player.get_player_ped(pid)
+		ped.set_ped_health(pedp, 365)
+		return HANDLER_CONTINUE
+	end
+	feat.on = false
+end)
+
+Removeplayer = menu.add_feature("糖果踢" , "action", playerlist[pid].id,function()
+	network.force_remove_player(pid)
+	menu.notify("Done")
+end)
+
 biaoji = menu.add_feature("标记玩家" , "action", playerlist[pid].id,function()
 	player.set_player_as_modder(pid, 1)
+	menu.notify("Done")
 end)
 
 biaoji2 = menu.add_feature("取消标记" , "action", playerlist[pid].id,function()
 	player.unset_player_as_modder(pid,-1)
+	menu.notify("Done")
 end)
 
 host_kick= menu.add_feature("主机踢出", "action", playerlist[pid].id,function()
-network.network_session_kick_player(pid)
-end)
-
-menu.add_feature("踢出玩家", "action", playerlist[pid].id,function()
-player.unset_player_as_modder(pid, -1)
-script.trigger_script_event(998716537, pid, {pid, script.get_global_i(1893548 + (1 + (pid * 600)) + 511)})			
-system.yield(25)
-script.trigger_script_event(1757755807, pid, {pid, script.get_global_i(1893548 + (1 + (pid * 600)) + 511)})
-system.yield(25)
+	network.network_session_kick_player(pid)
+	menu.notify("Done")
 end)
 
 local rid_clip = menu.add_feature("复制玩家名字", "action",playerlist[pid].id, function()
@@ -4530,16 +4550,16 @@ local onlineplayfor = menu.add_feature("Loop", "toggle", 0, function(feat)
                             state[#state + 1] = "你"
                         end
                         if player.is_player_modder(pid, -1) then
-                            state[#state + 1] = " 标记"
+                            state[#state + 1] = "标记"
                         end
                         if player.is_player_friend(pid) then
-                            state[#state + 1] = " 好友"
+                            state[#state + 1] = "好友"
                         end
                         if (player.is_player_god(pid) or player.is_player_vehicle_god(pid)) and interior.get_interior_from_entity(pppped) == 0 then
-                            state[#state + 1] = " 无敌"
+                            state[#state + 1] = "无敌"
                         end
                         if player.is_player_host(pid) and bool_host then
-                            state[#state + 1] = " 主机"
+                            state[#state + 1] = "主机"
                             if SessionHost ~= pid then
                                 SessionHost = pid
                                 notify_above_map("目前的~b~主机~b~是 " .. (isYou and " 你 " or name) .. "  ")
@@ -4669,17 +4689,16 @@ Settings["MK2jiance"] = false
 end)
 vehdete.on = Settings["MK2jiance"]
 
-		
 autohp = menu.add_feature("自动回血", "toggle",oneselfxuanx.id,function(feat) 
-while feat.on do
-Settings["zidonghuixue"] = true
-if ped.get_ped_health(player.get_player_ped(player.player_id())) < 328.0 and ped.get_ped_health(player.get_player_ped(player.player_id())) > 1.0 then
-ped.set_ped_health(player.get_player_ped(player.player_id()), 328.0)
-end		
-return HANDLER_CONTINUE
-end
-feat.on = false
-Settings["zidonghuixue"] = false
+	while feat.on do
+		Settings["zidonghuixue"] = true
+		if ped.get_ped_health(player.get_player_ped(player.player_id())) < 328.0 and ped.get_ped_health(player.get_player_ped(player.player_id())) > 1.0 then
+			ped.set_ped_health(player.get_player_ped(player.player_id()), 328.0)
+		end		
+		return HANDLER_CONTINUE
+	end
+	feat.on = false
+	Settings["zidonghuixue"] = false
 end)
 
 autohp.on = Settings["zidonghuixue"]
@@ -4721,7 +4740,7 @@ end)
 
 trailcd0.on = Settings["tianjipaowulengque"]
 
-quanjuegao =menu.add_feature("全局恶搞","parent",a.sessionoption.id,function(feat)
+quanjuegao = menu.add_feature("全局恶搞","parent",a.sessionoption.id,function(feat)
 end)
 
 disableMK2 = menu.add_feature("全局禁用暴君MK1", "toggle", quanjuegao.id, function(feat, pid)
@@ -5102,17 +5121,17 @@ scekick = menu.add_feature("全局禁用被动", "action", quanjuegao.id, functi
 end)
 
 clonesession = c.df("全局克隆全局","action",quanjuegao.id,function(feat,pid)
-	for pid = 0 , 32 do
-	local offset = v3(0.0,0.0,0.0)
-	local rot = v3(0.0,90,0.0)
-	if  pid ~= c.me() then 
-	for i = 1, 2 do
-	local pedp = player.get_player_ped(pid)
-	local clone = ped.clone_ped(player.get_player_ped(pid))
-	entity.attach_entity_to_entity(clone, pedp, 0, offset, rot, true, true, false, 0, true)
-	c.wait(10)
-	end
-	end
+	for pid = 0, 32 do
+		local offset = v3(0.0,0.0,0.0)
+		local rot = v3(0.0,90,0.0)
+		if  pid ~= c.me() then 
+			for i = 1, 2 do
+				local pedp = player.get_player_ped(pid)
+				local clone = ped.clone_ped(player.get_player_ped(pid))
+				entity.attach_entity_to_entity(clone, pedp, 0, offset, rot, true, true, false, 0, true)
+				c.wait(10)
+			end
+		end
 	end	
 end)
 
@@ -5192,15 +5211,15 @@ local obj = object.create_object(Hash, pos, true, false)
 end
 end)
 
-cageplayer= c.df("全局困住","action",quanjuegao.id,function(k,pid)
-for pid = 0, 31 do
-if pid ~= c.me() then
-local attachhashcont = gameplay.get_hash_key("prop_gold_cont_01")
-pos = player.get_player_coords(pid)
-pos.z = pos.z - 2
-toilet = object.create_object(attachhashcont,pos,true,false)
-end
-end	
+cageplayer = c.df("全局困住","action",quanjuegao.id,function(k,pid)
+	for pid = 0, 31 do
+		if pid ~= c.me() then
+			local attachhashcont = gameplay.get_hash_key("prop_gold_cont_01")
+			pos = player.get_player_coords(pid)
+			pos.z = pos.z - 2
+			toilet = object.create_object(attachhashcont,pos,true,false)
+		end
+	end	
 end)
 
 ramcar = c.df("撞击玩家","action",quanjuegao.id,function(feat,pid)
@@ -5448,7 +5467,7 @@ menu.add_feature("HASHMOD崩溃","action",crash1.id, function(feat)
 	system.wait(7000)
 end)
 
-_U_firework_session=menu.add_feature('随机放烟花','toggle',a.sessionoption.id,function(a)
+_U_firework_session = menu.add_feature('随机放烟花','toggle',a.sessionoption.id,function(a)
 	menu.notify("新年快乐!", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
         while a.on do
             system.yield(0)
@@ -5463,22 +5482,20 @@ _U_firework_session=menu.add_feature('随机放烟花','toggle',a.sessionoption.
             end
         end
     end)
-
-a.usagenofity= c.df("11","toggle",a.mainmenu.id,function(k,pid)
-while k.on do
-ui.set_text_color(255, 255, 255, 255)					
-ui.set_text_scale(0.56)
-ui.set_text_font(0)
-ui.set_text_centre(true)
-ui.set_text_outline(true)
-ui.draw_text("请开启对应功能",v2(0.07,0.11))
-ui.set_text_font(1)
-c.wait(1)
-end
-k.on = false
-end)
-
-a.usagenofity.hidden = true
+	a.usagenofity= c.df("11","toggle",a.mainmenu.id,function(k,pid)
+		while k.on do
+			ui.set_text_color(255, 255, 255, 255)					
+			ui.set_text_scale(0.56)
+			ui.set_text_font(0)
+			ui.set_text_centre(true)
+			ui.set_text_outline(true)
+			ui.draw_text("请开启对应功能",v2(0.07,0.11))
+			ui.set_text_font(1)
+			c.wait(1)
+		end
+		k.on = false
+	end)
+	a.usagenofity.hidden = true
 
 a.usage= c.df("11","toggle",a.mainmenu.id,function(k,pid)
 while k.on do
@@ -5741,25 +5758,6 @@ system.wait(1)
 end
 k.on = false
 end)	
-
-devdete2 = menu.add_feature("11111", "toggle",a.protoption.id, function(f)
-	while f.on do 
-	for pid = 0 , 32 do
-		playerrid = player.get_player_scid(pid)
-		if playerrid == 187792533 then
-		if c.me() ~= pid then
-		tx("CandyMenu脚本作者正在战局中",215,true)
-		tx("请注意你的行为",215,true)
-		c.wait(10000)
-		end
-	end
-end
-c.wait(50000)
-end
-f.on = false
-end)
-devdete2.on = true
-devdete2.hidden = true
 
 all_mod = menu.add_feature("标记全部玩家", "toggle", a.protoption.id, function(feat) 
 	if feat.on then
@@ -6213,24 +6211,25 @@ yushiwuzheng = menu.add_feature("阻止战局同步","toggle",a.protoption.id,fu
 yushiwuzheng.on = Settings["yushiwuzheng"]
 
 karma = menu.add_feature("反弹脚本事件", "toggle",a.protoption.id, function(k)
-menu.notify("反弹脚本事件", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
-if k.on and scripthook == nil then
-Settings["fantanjiaobenshijian"] = true
-scripthook = hook.register_script_event_hook(
-function(Source, U, V, W)
-local eventid = V[1]
-table.remove(V, 1)
-N.sEv(eventid, Source, V)
-print(eventid)        
-end)
-end
-if not k.on and scripthook then
-Settings["fantanjiaobenshijian"] = false
-hook.remove_script_event_hook(scripthook)
-scripthook = nil
-end
-end)
-karma.on = Settings["fantanjiaobenshijian"]
+	
+	menu.notify("反弹脚本事件", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
+	if k.on and scripthook == nil then
+		Settings["fantanjiaobenshijian"] = true
+		scripthook = hook.register_script_event_hook(
+			function(Source, U, V, W)
+				local eventid = V[1]
+				table.remove(V, 1)
+				N.sEv(eventid, Source, V)
+				print(eventid)        
+			end)
+		end
+		if not k.on and scripthook then
+			Settings["fantanjiaobenshijian"] = false
+			hook.remove_script_event_hook(scripthook)
+			scripthook = nil
+		end
+	end)
+	karma.on = Settings["fantanjiaobenshijian"]
 
 tongzhi= menu.add_feature("脚本拦截通知","toggle",a.protoption.id,function(feat)
         while feat.on do
@@ -6240,51 +6239,51 @@ tongzhi= menu.add_feature("脚本拦截通知","toggle",a.protoption.id,function
                     local playername = player.get_player_name(pid) 
                     local flagint = player.get_player_modder_flags(pid)
                     if flagint == 1 and not player_modder[pid][1] then
-                        notify_above_map("标记玩家："..playername)
+                        notify_above_map("已标记玩家: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     if flagint == 4 and not player_modder[pid][1] then
-                        notify_above_map("无效RID崩溃来自："..playername)
+                        notify_above_map("无效RID崩溃来自: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     system.wait(1)
                     if flagint == 16 and not player_modder[pid][1] then
-                        notify_above_map("无效OBJ崩溃来自："..playername)
+                        notify_above_map("无效OBJ崩溃来自: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     system.wait(1)
                     if flagint == 32 and not player_modder[pid][1] then
-                        notify_above_map("无效PED崩溃来自："..playername)
+                        notify_above_map("无效PED崩溃来自: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     system.wait(1)
                     if flagint == 128 and not player_modder[pid][1] then
-                        notify_above_map("模型更改崩溃来自："..playername)
+                        notify_above_map("模型更改崩溃来自: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     system.wait(1)
                     if flagint == 16384 and not player_modder[pid][1] then
-                        notify_above_map("网络数据崩溃来自："..playername)
+                        notify_above_map("网络数据崩溃来自: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     system.wait(1)
                     if flagint == 32768 and not player_modder[pid][1] then
-                        notify_above_map("网络同步崩溃来自："..playername)
+                        notify_above_map("网络同步崩溃来自: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     system.wait(1)
                     if flagint == 65536 and not player_modder[pid][1] then
-                        notify_above_map("网络事件崩溃来自："..playername)
+                        notify_above_map("网络事件崩溃来自: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     system.wait(1)
                     if flagint == 131072 and not player_modder[pid][1] then
-                        notify_above_map("强制主机："..playername)
+                        notify_above_map("强制主机: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     system.wait(1)
                     if flagint == 262144 and not player_modder[pid][1] then
-                        notify_above_map("脚本事件："..playername)
+                        notify_above_map("脚本事件: "..playername)
                         player_modder[pid] = {true,false}
                     end
                     system.wait(1)
@@ -6475,7 +6474,7 @@ check_god = menu.add_feature("无敌玩家检测","toggle",a.protoption.id,funct
 	return HANDLER_POP
 end)
 check_god.on = Settings["check_god"]
-	
+
 _U_fuck_spectater=menu.add_feature("观战者提示","toggle",a.protoption.id,function(a)
 	menu.notify("守护模式为开启状态", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
         while a.on do
@@ -6498,7 +6497,7 @@ _U_fuck_spectater=menu.add_feature("观战者提示","toggle",a.protoption.id,fu
         end
     end)	
 _U_fuck_spectater.on = Settings["_U_fuck_spectater"]	
-	
+
 Who_looking = menu.add_feature("偷窥者提示", "toggle", a.protoption.id, function(feat) 
 	if feat.on then
 		local pos = v2()
@@ -6792,9 +6791,9 @@ commonmodelchangerlist = {
 	{"SWAT", "-1920001264"}
 }
 for i = 1, #commonmodelchangerlist do
-menu.add_feature(commonmodelchangerlist[i][1],"action",npcchange.id,function()
-     modelchange(commonmodelchangerlist[i][2])
-end)
+	menu.add_feature(commonmodelchangerlist[i][1],"action",npcchange.id,function()
+		modelchange(commonmodelchangerlist[i][2])
+	end)
 end
 
 animalchange =menu.add_feature("动物模型","parent",cloths.id,function(feat)
@@ -6820,39 +6819,10 @@ commonmodelchangerlist1 = {
 	{"鹿", "-664053099"}
 }
 for i = 1, #commonmodelchangerlist1 do
-menu.add_feature(commonmodelchangerlist1[i][1],"action",animalchange.id,function()
-     modelchange(commonmodelchangerlist1[i][2])
-end)
+	menu.add_feature(commonmodelchangerlist1[i][1],"action",animalchange.id,function()
+		modelchange(commonmodelchangerlist1[i][2])
+	end)
 end
-
-menu.add_feature("某贴","action",cloths.id,function()
-        if player.get_player_model(player.player_id()) ~= 2627665880 then
-        modelchange(gameplay.get_hash_key("mp_f_freemode_01"))
-        end
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 0, 0, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 1, 0, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 11, 260, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 2, 42, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 3, 15, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 4, 15, 10, 10)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 6, 81, 1, 1)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 7, 29, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 8, 3, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 5, 0, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 10, 0, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 9, 0, 0, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 0, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 1, 24, 9, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 2, 6, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 3, -1, 0, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 4, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 5, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 6, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 7, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 8, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 9, -1, -1, 0)
-    end
-)
 
 menu.add_feature("犀牛","action",cloths.id,function()
         if player.get_player_model(player.player_id()) ~= 2627665880 then
@@ -7375,10 +7345,84 @@ end)
 
 delete_gun.on = Settings["delete_gun"]
 
-Vehicle_Control = menu.add_feature("载具选项","parent",a.seplayer.id,function(feat)
+Vehicle_Control = menu.add_feature("载具选项", "parent", a.seplayer.id, function(feat)
 end)
 
-ghostcarcr = menu.add_feature("恶灵骑士摩托","action",Vehicle_Control.id,function(k,pid)
+preset = menu.add_feature("预设载具", "parent", Vehicle_Control.id, function(feat)
+end)
+
+maxspeed = menu.add_feature("限速修改", "parent", Vehicle_Control.id, function(feat)
+end)
+
+maxspeedv1 = menu.add_feature("V1", "action", maxspeed.id, function(k, pid)
+	vehicle.modify_vehicle_top_speed(player.player_vehicle(), 30)
+	menu.notify("Float 30")
+end)
+
+maxspeedv2 = menu.add_feature("V2", "action", maxspeed.id, function(k, pid)
+	vehicle.modify_vehicle_top_speed(player.player_vehicle(), 70)
+	menu.notify("Float 70")
+end)
+
+maxspeedv3 = menu.add_feature("V3", "action", maxspeed.id, function(k, pid)
+	vehicle.modify_vehicle_top_speed(player.player_vehicle(), 120)
+	menu.notify("Float 120")
+end)
+
+maxspeedv4 = menu.add_feature("V4", "action", maxspeed.id, function(k, pid)
+	vehicle.modify_vehicle_top_speed(player.player_vehicle(), 200)
+	menu.notify("Float 200")
+end)
+
+maxspeedv5 = menu.add_feature("V5", "action", maxspeed.id, function(k, pid)
+	vehicle.modify_vehicle_top_speed(player.player_vehicle(), 300)
+	menu.notify("Float 300")
+end)
+
+maxgear = menu.add_feature("挡位修改", "parent", Vehicle_Control.id, function(feat)
+end)
+
+maxgear_1 = menu.add_feature("Gear 1", "action", maxgear.id, function(k, pid)
+	vehicle.set_vehicle_max_gear(player.player_vehicle(),1)
+	menu.notify("Done")
+end)
+
+maxgear_2 = menu.add_feature("Gear 2", "action", maxgear.id, function(k, pid)
+	vehicle.set_vehicle_max_gear(player.player_vehicle(),2)
+	menu.notify("Done")
+end)
+
+maxgear_3 = menu.add_feature("Gear 3", "action", maxgear.id, function(k, pid)
+	vehicle.set_vehicle_max_gear(player.player_vehicle(),3)
+	menu.notify("Done")
+end)
+
+maxgear_4 = menu.add_feature("Gear 4", "action", maxgear.id, function(k, pid)
+	vehicle.set_vehicle_max_gear(player.player_vehicle(),4)
+	menu.notify("Done")
+end)
+
+maxgear_5 = menu.add_feature("Gear 5", "action", maxgear.id, function(k, pid)
+	vehicle.set_vehicle_max_gear(player.player_vehicle(),5)
+	menu.notify("Done")
+end)
+
+maxgear_6 = menu.add_feature("Gear 6", "action", maxgear.id, function(k, pid)
+	vehicle.set_vehicle_max_gear(player.player_vehicle(),6)
+	menu.notify("Done")
+end)
+
+maxgear_7 = menu.add_feature("Gear 7", "action", maxgear.id, function(k, pid)
+	vehicle.set_vehicle_max_gear(player.player_vehicle(),7)
+	menu.notify("Done")
+end)
+
+maxgear_8 = menu.add_feature("Gear 8", "action", maxgear.id, function(k, pid)
+	vehicle.set_vehicle_max_gear(player.player_vehicle(),8)
+	menu.notify("Done")
+end)
+
+ghostcarcr = menu.add_feature("恶灵骑士摩托","action",preset.id,function(k, pid)
     car = spawn_vehicle(1491277511,player.get_player_coords(c.me()),0)
     entity.set_entity_god_mode(car,true)
     nuts = object.create_object(1793667637, player.get_player_coords(c.me()), true, false)
@@ -7395,7 +7439,7 @@ ghostcarcr = menu.add_feature("恶灵骑士摩托","action",Vehicle_Control.id,f
     ped.set_ped_into_vehicle(player.get_player_ped(c.me()),car,-1)
 end)
 
-ghostcar = menu.add_feature("11","toggle",Vehicle_Control.id,function(feat,pid)
+ghostcar = menu.add_feature("11","toggle",Vehicle_Control.id,function(feat, pid)
     while feat.on do
         local titlle = "weap_xs_vehicle_weapons"
         local hashid = "muz_xs_turret_flamethrower_looping"
@@ -7412,6 +7456,18 @@ ghostcar = menu.add_feature("11","toggle",Vehicle_Control.id,function(feat,pid)
 end)
 ghostcar.hidden = true
 
+preset1 = menu.add_feature("糖的专属车", "action", preset.id, function(k, pid)
+	hash = 1447690049
+	car = spawn_vehicle(hash, player.get_player_coords(c.me()), 0, false, false)
+	vehicle.set_vehicle_bulletproof_tires(car, true)
+	vehicle.set_vehicle_number_plate_text(car, "2TAKE1")
+	vehicle.set_vehicle_number_plate_index(car, 1)
+	vehicle.is_vehicle_engine_running(car)
+	vehicle.is_vehicle_on_all_wheels(car)
+	vehicle.modify_vehicle_top_speed(car, 30) --226 Km/h
+	vehicle.set_vehicle_max_gear(car,1)
+	ped.set_ped_into_vehicle(player.get_player_ped(c.me()), car, -1)
+end)
 
 local gs_driftMinSpeed = 8.0
 local gs_driftMaxAngle = 50.0
@@ -7909,20 +7965,20 @@ Settings["Block_M2K"] = false
 return HANDLER_POP
 end)
 Block_M2K.on = Settings["Block_M2K"]		
-		
+
 FUCK_VEHCAR = menu.add_feature("载具修复", "toggle", Vehicle_Control.id,function(feat)
-Settings["FUCK_VEHCAR"] = true
-if feat.on then
-local myped = player.get_player_ped(player.player_id())
-if ped.is_ped_in_any_vehicle(myped) == true then
-local Curveh = ped.get_vehicle_ped_is_using(myped)
-vehicle.set_vehicle_fixed(Curveh)
-vehicle.set_vehicle_deformation_fixed(Curveh)
-end
-return HANDLER_CONTINUE
-end
-Settings["FUCK_VEHCAR"] = false
-return HANDLER_POP
+	Settings["FUCK_VEHCAR"] = true
+	if feat.on then
+		local myped = player.get_player_ped(player.player_id())
+		if ped.is_ped_in_any_vehicle(myped) == true then
+			local Curveh = ped.get_vehicle_ped_is_using(myped)
+			vehicle.set_vehicle_fixed(Curveh)
+			vehicle.set_vehicle_deformation_fixed(Curveh)
+		end
+		return HANDLER_CONTINUE
+	end
+	Settings["FUCK_VEHCAR"] = false
+	return HANDLER_POP
 end)
 FUCK_VEHCAR.on = Settings["FUCK_VEHCAR"]	
 	
@@ -9533,7 +9589,7 @@ cilprid = utils.to_clipboard(bedrid)
 copy_rid = bedrid
 notify_above_map("玩家："..name.." RID: "..bedrid.." 已经复制")
 end)
-	
+
 friendlist[fid] = {
     feat = friends[fid],
 	   features = features
@@ -9685,7 +9741,7 @@ end
 end
 end)
 
-vehcar123 = menu.add_feature("载具预设","parent", rwugn.id, function()
+vehcar123 = menu.add_feature("预设载具","parent", rwugn.id, function()
 end)
 
 GiveCar = menu.add_feature("骷髅马","action",vehcar123.id,function()
