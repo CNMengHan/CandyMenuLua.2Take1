@@ -77,7 +77,6 @@ Settings["miaozhunkongxi"] = false
 Settings["aimprotremoveweapon"] = false
 Settings["aimprotupn"] = false
 Settings["auto_delivery"] = false
-Settings["jinyongMK2"] = false
 Settings["pedpingbi"] = false
 Settings["pedshanchu"] = false
 Settings["xianshishijian2"] = false
@@ -87,8 +86,6 @@ Settings["Block_MK1"] = false
 Settings["Block_M2K"] = false
 Settings["FUCK_VEHCAR"] = false
 Settings["ceshifanghu32"] = false
-Settings["jinyongMK21"] = false
-Settings["jinyongMK1"] = false
 Settings["GIFguajian"] = false
 Settings["yanhuaqiang"] = false
 Settings["AutoRefillAmmo"] = false
@@ -619,6 +616,7 @@ Load_Settings()
 CandyMenu = c.pdf("Candy Menu VIP","parent",0) 
 crashCrash = c.pdf("崩溃选项","parent",CandyMenu.id) 
 a.seplayer = c.df("玩家自我选项","parent",a.mainmenu.id)
+a.vehicleset = c.df("载具修改选项","parent",a.mainmenu.id)
 a.teleport = c.df("传送选项", "parent", a.seplayer.id)
 a.onlineplayer = c.df("战局玩家列表","parent",a.mainmenu.id)
 a.friendlists = c.df("档案好友列表", "parent", a.mainmenu.id)
@@ -1406,32 +1404,6 @@ system.wait(50)
 end
 entity.set_entity_coords_no_offset(player.get_player_ped(player.player_id()), mypos)
 end)
-
-targver1 = menu.add_feature("领域崩溃","action",crashmenu.id, function()
-if NNNNC == nil then
-notify_above_map("未创建新领域菜单")
-else
-local pos = player.get_player_coords(pid)
-entity.set_entity_coords_no_offset(NNNNC, pos)
-system.wait(500)
-entity.set_entity_coords_no_offset(NNNNC, v3(460.586,5571.714, 781.179))
-end	
-end)
-
-
-local propid = {
-    1727217687,
-    1734157390,
-    3613262246,
-    450174759,
-    3726116795,
-    1759812941,
-    3301528862,
-    386259036,
-    2040219850,
-    -2108662770,
-    3063601656
-}
 
 menu.add_feature("VehSync崩溃", "action", crashmenu.id, function()
 	menu.notify("Crashing...", "Veh Sync Crash", 2, RGBAToInt(0, 255, 255, 255))
@@ -3968,12 +3940,12 @@ ped.set_ped_into_vehicle(pedmy,carp,-1)
 end)
 	
 engine = menu.add_feature("破坏载具","action",vehiclecar.id,function()
-pedp = player.get_player_ped(pid)
-playercar = ped.get_vehicle_ped_is_using(pedp)
-get_control_of_entity(playercar, 500)
-vehicle.set_vehicle_engine_health(playercar, -100)
+	pedp = player.get_player_ped(pid)
+	playercar = ped.get_vehicle_ped_is_using(pedp)
+	get_control_of_entity(playercar, 500)
+	vehicle.set_vehicle_engine_health(playercar, -100)
 end)
-		
+
 setvehspeed = menu.add_feature("发射载具","action",vehiclecar.id,function(k)
 pedp = player.get_player_ped(pid)
 car = ped.get_vehicle_ped_is_using(pedp)
@@ -4140,10 +4112,13 @@ end)
 isFriend = menu.add_feature("友好选项", "parent", playerlist[pid].id, function(feat)
 end)
 
-RegainHealth = menu.add_feature("半无敌", "toggle", isFriend.id, function(feat)
+RegainHealth = menu.add_feature("循环掉血包", "toggle", isFriend.id, function(feat)
+	requestmodel(0x28781518)
 	while feat.on do
-		local pedp = player.get_player_ped(pid)
-		ped.set_ped_health(pedp, 365)
+		local pos = player.get_player_coords(pid)
+		pos.z = pos.z + 0.90
+		object.create_object(0x28781518, pos, true, true)
+		system.yield(0)
 		return HANDLER_CONTINUE
 	end
 	feat.on = false
@@ -4160,10 +4135,52 @@ FakeReport1 = menu.add_feature("正在尝试崩溃", "action", FakeReport.id, fu
 	network.send_chat_message(playertxt2, false)
 end)
 
+FakeReport3 = menu.add_feature("正在尝试踢出", "action", FakeReport.id, function(feat)		
+	playername = player.get_player_name(pid)		
+	playertxt1 = "检测到恶意玩家 " ..playername.. " 正在尝试踢出2TAKE1VIP用户 ¦"
+	playertxt2 = "Malicious cheat player detected " ..playername.. " trying to kick current user ¦"
+	network.send_chat_message(playertxt1, false)
+	network.send_chat_message(playertxt2, false)
+end)
+
 FakeReport2 = menu.add_feature("阻止全局崩溃", "action", FakeReport.id, function(feat)		
 	playername = player.get_player_name(pid)		
 	playertxt1 = "已阻止恶意玩家 " ..playername.. " 的全局玩家崩溃事件 ¦"
 	playertxt2 = "Blocked global crash event for malicious player: " ..playername.. " ¦"
+	network.send_chat_message(playertxt1, false)
+	network.send_chat_message(playertxt2, false)
+end)
+
+FakeReport4 = menu.add_feature("触发R星反作弊C2 - IP", "action", FakeReport.id, function(feat)		
+	playername = player.get_player_name(pid)
+	playerip = player.get_player_ip(pid)
+	
+	local formattedIP = string.format("%d.%d.%d.%d",
+	tonumber(string.sub(playerip, 1, 3)),
+	tonumber(string.sub(playerip, 4, 6)),
+	tonumber(string.sub(playerip, 7, 9)),
+	tonumber(string.sub(playerip, 10, 12))
+)
+
+	playertxt1 = "检测到恶意玩家 " ..playername.. " IP:" ..formattedIP.. " 触发了R星反作弊C2 ¦"
+	playertxt2 = "Malicious player detected " ..playername.. " IP:" ..formattedIP.. " Trigger Rockstar anti-cheat C2 ¦"
+	network.send_chat_message(playertxt1, false)
+	network.send_chat_message(playertxt2, false)
+end)
+
+FakeReport5 = menu.add_feature("触发R星反作弊E7 - IP", "action", FakeReport.id, function(feat)		
+	playername = player.get_player_name(pid)
+	playerip = player.get_player_ip(pid)
+	
+	local formattedIP = string.format("%d.%d.%d.%d",
+	tonumber(string.sub(playerip, 1, 3)),
+	tonumber(string.sub(playerip, 4, 6)),
+	tonumber(string.sub(playerip, 7, 9)),
+	tonumber(string.sub(playerip, 10, 12))
+)
+
+	playertxt1 = "检测到恶意玩家 " ..playername.. " IP:" ..formattedIP.. " 触发了R星反作弊E7 ¦"
+	playertxt2 = "Malicious player detected " ..playername.. " IP:" ..formattedIP.. " Trigger Rockstar anti-cheat E7 ¦"
 	network.send_chat_message(playertxt1, false)
 	network.send_chat_message(playertxt2, false)
 end)
@@ -4578,26 +4595,26 @@ local onlineplayfor = menu.add_feature("Loop", "toggle", 0, function(feat)
                             PlayerPed =	player.get_player_ped(player.player_id())
                         end
                         if isYou then
-                            state[#state + 1] = "你"
+                            state[#state + 1] = " 你 "
                         end
                         if player.is_player_modder(pid, -1) then
-                            state[#state + 1] = "标记"
+                            state[#state + 1] = " 标记 "
                         end
                         if player.is_player_friend(pid) then
-                            state[#state + 1] = "好友"
+                            state[#state + 1] = " 好友 "
                         end
                         if (player.is_player_god(pid) or player.is_player_vehicle_god(pid)) and interior.get_interior_from_entity(pppped) == 0 then
-                            state[#state + 1] = "无敌"
+                            state[#state + 1] = " 无敌 "
                         end
                         if player.is_player_host(pid) and bool_host then
-                            state[#state + 1] = "主机"
+                            state[#state + 1] = " 主机 "
                             if SessionHost ~= pid then
                                 SessionHost = pid
                                 notify_above_map("目前的~b~主机~b~是 " .. (isYou and " 你 " or name) .. "  ")
                             end
                         end
                         if pid == script.get_host_of_this_script() and bool_host then
-                            state[#state + 1] = " 脚本主机"
+                            state[#state + 1] = " 脚本主机 "
                             if ScriptHost ~= pid then
                                 ScriptHost = pid
                                 notify_above_map("目前的~b~脚本主机~b~是 " .. (isYou and " 你 " or name) .. "  ")
@@ -4605,7 +4622,7 @@ local onlineplayfor = menu.add_feature("Loop", "toggle", 0, function(feat)
                         end
                     end
                     if #state > 0 then
-                        name = name .. " [" .. table.concat(state) .. "]"
+                        name = name .. " > " .. table.concat(state)
                     end
                     if f.name ~= name then f.name = name end
                 end
@@ -4618,7 +4635,6 @@ local onlineplayfor = menu.add_feature("Loop", "toggle", 0, function(feat)
 end)
 onlineplayfor.hidden = true
 onlineplayfor.on = true
-
 
 Myped = function()
   return player.get_player_ped(player.player_id())
@@ -4759,249 +4775,32 @@ end)
 
 autorc.on = Settings["zidongfuhuo"]
 
-trailcd0= c.df("天基炮无冷却","toggle",oneselfxuanx.id,function(k)
-while k.on do
-Settings["tianjipaowulengque"] = true
-stat_set_int("ORBITAL_CANNON_COOLDOWN",0,0)
-c.wait(5)
-end
-k.on = false
-Settings["tianjipaowulengque"] = false
+trailcd0 = c.df("天基炮无冷却","toggle",oneselfxuanx.id,function(k)
+	while k.on do
+		Settings["tianjipaowulengque"] = true
+		stat_set_int("ORBITAL_CANNON_COOLDOWN",0,0)
+		c.wait(5)
+	end
+	k.on = false
+	Settings["tianjipaowulengque"] = false
 end)
-
 trailcd0.on = Settings["tianjipaowulengque"]
 
-quanjuegao = menu.add_feature("全局恶搞","parent",a.sessionoption.id,function(feat)
+AllspoofMenu = menu.add_feature("全局恶搞","parent",a.sessionoption.id,function(feat)
 end)
 
-disableMK2 = menu.add_feature("全局禁用暴君MK1", "toggle", quanjuegao.id, function(feat, pid)
-    if feat.on then
-		Settings["jinyongMK1"] = true
-        for pid = 0, 32 do
-            if pid ~= player.player_id() then
-				local their_ped = player.get_player_ped(pid)
-				local their_v =  player.get_player_vehicle(pid)
-				local hash = entity.get_entity_model_hash(their_v)
-				system.wait(0)
-				if entity.get_entity_model_hash(their_v) == 884483972 then
-					system.wait(2000)
-					if not network.has_control_of_entity(their_v) then
-						network.request_control_of_entity(their_v)	
-					end	
-					local ff = player.player_count()
-					local o = math.random(1, ff)
-					if o ~= player.player_id() and o ~= pid then
-						local car =  player.get_player_vehicle(pid)
-						local d = player.get_player_ped(o)
-						network.request_control_of_entity(car)
-						for dd = 1,100 do
-							network.request_control_of_entity(car)
-						end
-						vehicle.modify_vehicle_top_speed(car, 2)
-						entity.set_entity_max_speed(car, 3)
-						vehicle.modify_vehicle_top_speed(car, 2)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						network.request_control_of_entity(their_v)	
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						system.wait(500)
-						fire.add_explosion(player.get_player_coords(pid), 5, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 29, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 1, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 2, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 20, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 5, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 29, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 1, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 2, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 20, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 5, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 29, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 1, true, false, 1, d)
-						for i = 1,200 do
-							local nn = player.get_player_name(o)
-							if player.is_player_valid(o) == true then
-								ui.draw_rect(0.001, 0.999, 4.5, 0.085, 0, 0, 0, 200)
-								ui.set_text_color(255, 0, 0, 100)				
-								ui.set_text_scale(0.5)
-								ui.set_text_font(0)
-								ui.set_text_centre(true)
-								ui.set_text_outline(true)
-								ui.draw_text("你禁用了"..player.get_player_name(pid).."的暴君MK1"..nn,v2(0.5,0.96))
-								ui.set_text_font(1)
-								system.wait(10)
-							end
-						end
-					end
-					system.wait(1000)
-				end
-			end
+AllVerhicleSoakInWater = menu.add_feature("将所有车辆扔入水中","action",AllspoofMenu.id,function(feat, pid)
+	allvehs = vehicle.get_all_vehicles()
+	local myPed = MyPed()
+	local myPos = MyPos(myPed)
+	local myVeh = MyVeh(myPed)
+	for i = 1, #allvehs do
+		if myVeh ~= allvehs[i] and myPos:magnitude(MyPos(allvehs[i])) <= 1000 then
+			entity.get_entity_model_hash(allvehs[i])
+			entity.set_entity_coords_no_offset(allvehs[i], v3(-3373,-854,-5))
 		end
-	else
-		Settings["jinyongMK1"] = false
 	end
-	return HANDLER_CONTINUE
 end)
-disableMK2.on = Settings["jinyongMK1"]
-
-disableMK2 = menu.add_feature("全局禁用暴君MK2", "toggle", quanjuegao.id, function(feat, pid)
-    if feat.on then
-		Settings["jinyongMK2"] = true
-        for pid = 0, 32 do
-            if pid ~= player.player_id() then
-				local their_ped = player.get_player_ped(pid)
-				local their_v =  player.get_player_vehicle(pid)
-				local hash = entity.get_entity_model_hash(their_v)
-				system.wait(0)
-				if entity.get_entity_model_hash(their_v) == 2069146067 then
-					system.wait(2000)
-					if not network.has_control_of_entity(their_v) then
-						network.request_control_of_entity(their_v)	
-					end	
-					local ff = player.player_count()
-					local o = math.random(1, ff)
-					if o ~= player.player_id() and o ~= pid then
-						local car =  player.get_player_vehicle(pid)
-						local d = player.get_player_ped(o)
-						network.request_control_of_entity(car)
-						for dd = 1,100 do
-							network.request_control_of_entity(car)
-						end
-						vehicle.modify_vehicle_top_speed(car, 2)
-						entity.set_entity_max_speed(car, 3)
-						vehicle.modify_vehicle_top_speed(car, 2)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						network.request_control_of_entity(their_v)	
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						system.wait(500)
-						fire.add_explosion(player.get_player_coords(pid), 5, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 29, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 1, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 2, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 20, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 5, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 29, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 1, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 2, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 20, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 5, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 29, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 1, true, false, 1, d)
-						for i = 1,200 do
-							local nn = player.get_player_name(o)
-							if player.is_player_valid(o) == true then
-								ui.draw_rect(0.001, 0.999, 4.5, 0.085, 0, 0, 0, 200)
-								ui.set_text_color(255, 0, 0, 100)				
-								ui.set_text_scale(0.5)
-								ui.set_text_font(0)
-								ui.set_text_centre(true)
-								ui.set_text_outline(true)
-								ui.draw_text("你禁用了"..player.get_player_name(pid).."的暴君MK2"..nn,v2(0.5,0.96))
-								ui.set_text_font(1)
-								system.wait(10)
-							end
-						end
-					end
-					system.wait(1000)
-				end
-			end
-		end
-	else
-		Settings["jinyongMK2"] = false
-	end
-	return HANDLER_CONTINUE
-end)
-disableMK2.on = Settings["jinyongMK2"]
-
-disableMK2 = menu.add_feature("全局禁用骷髅马", "toggle", quanjuegao.id, function(feat, pid)
-    if feat.on then
-		Settings["jinyongMK21"] = true
-        for pid = 0, 32 do
-            if pid ~= player.player_id() then
-				local their_ped = player.get_player_ped(pid)
-				local their_v =  player.get_player_vehicle(pid)
-				local hash = entity.get_entity_model_hash(their_v)
-				system.wait(0)
-				if entity.get_entity_model_hash(their_v) == 410882957 then
-					system.wait(2000)
-					if not network.has_control_of_entity(their_v) then
-						network.request_control_of_entity(their_v)	
-					end	
-					local ff = player.player_count()
-					local o = math.random(1, ff)
-					if o ~= player.player_id() and o ~= pid then
-						local car =  player.get_player_vehicle(pid)
-						local d = player.get_player_ped(o)
-						network.request_control_of_entity(car)
-						for dd = 1,100 do
-							network.request_control_of_entity(car)
-						end
-						vehicle.modify_vehicle_top_speed(car, 2)
-						entity.set_entity_max_speed(car, 3)
-						vehicle.modify_vehicle_top_speed(car, 2)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						entity.set_entity_max_speed(car, 1)
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						network.request_control_of_entity(their_v)	
-						vehicle.set_vehicle_forward_speed(their_v, 0)
-						system.wait(500)
-						fire.add_explosion(player.get_player_coords(pid), 5, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 29, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 1, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 2, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 20, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 5, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 29, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 1, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 2, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 20, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 5, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 29, true, false, 1, d)
-						fire.add_explosion(player.get_player_coords(pid), 1, true, false, 1, d)
-						for i = 1,200 do
-							local nn = player.get_player_name(o)
-							if player.is_player_valid(o) == true then
-								ui.draw_rect(0.001, 0.999, 4.5, 0.085, 0, 0, 0, 200)
-								ui.set_text_color(255, 0, 0, 100)				
-								ui.set_text_scale(0.5)
-								ui.set_text_font(0)
-								ui.set_text_centre(true)
-								ui.set_text_outline(true)
-								ui.draw_text("你禁用了"..player.get_player_name(pid).."的骷髅马"..nn,v2(0.5,0.96))
-								ui.set_text_font(1)
-								system.wait(10)
-							end
-						end
-					end
-					system.wait(1000)
-				end
-			end
-		end
-	else
-		Settings["jinyongMK21"] = false
-	end
-	return HANDLER_CONTINUE
-end)
-
-disableMK2.on = Settings["jinyongMK21"]
 
 function get_random_pid()
     local pid=math.random(0,31)
@@ -5012,56 +4811,54 @@ function get_random_pid()
     end
 end
 
-_U_fuck_session2=menu.add_feature("摇晃战局","toggle",quanjuegao.id,function(a)
-        while a.on do
-            system.yield(0)
-            for pid=0,31 do
-                if player.is_player_valid(pid) and not player.is_player_friend(pid)  and player.player_id() ~= pid then
-                    local killer=get_random_pid()
-                    if killer then
-                        fire.add_explosion(player.get_player_coords(pid)-v3(0,0,30),1,false,true,99999999,player.get_player_ped(killer))
-                    end
-                end
-            end
-        end
-    end)
-
-a.teleportcarp = c.df("传送到我","toggle",quanjuegao.id,function(k)
-while k.on do
-for pid = 0 , 32 do
-if pid ~= player.player_id() and player.is_player_valid(pid) then 
-pos = entity.get_entity_coords(player.get_player_ped(player.player_id()))
-if ped.is_ped_in_any_vehicle(player.get_player_ped(pid)) then
-car = ped.get_vehicle_ped_is_using(player.get_player_ped(pid))
-network.request_control_of_entity(car)
-entity.set_entity_coords_no_offset(car, pos)				
-end
-end
-end
-c.wait(50)
-end
-k.on = false
+_U_fuck_session2=menu.add_feature("摇晃战局","toggle",AllspoofMenu.id,function(a)
+	while a.on do
+		system.yield(0)
+		for pid=0,31 do
+			if player.is_player_valid(pid) and not player.is_player_friend(pid)  and player.player_id() ~= pid then
+				local killer=get_random_pid()
+				if killer then
+					fire.add_explosion(player.get_player_coords(pid)-v3(0,0,30),1,false,true,99999999,player.get_player_ped(killer))
+				end
+			end
+		end
+	end
 end)
 
-
-a.teleportcartosea = c.df("传送玩家到海洋","toggle",quanjuegao.id,function(k)
-while k.on do
-for pid = 0 , 32 do
-if pid ~= player.player_id() and player.is_player_valid(pid) then 	
-if ped.is_ped_in_any_vehicle(player.get_player_ped(pid)) then
-car = ped.get_vehicle_ped_is_using(player.get_player_ped(pid))
-network.request_control_of_entity(car)
-entity.set_entity_coords_no_offset(car, v3(-3373,-854,-5))				
-end
-end
-end
-c.wait(50)
-end
-k.on = false
+a.teleportcarp = c.df("传送到我","toggle",AllspoofMenu.id,function(k)
+	while k.on do
+		for pid = 0 , 32 do
+			if pid ~= player.player_id() and player.is_player_valid(pid) then 
+				pos = entity.get_entity_coords(player.get_player_ped(player.player_id()))
+				if ped.is_ped_in_any_vehicle(player.get_player_ped(pid)) then
+					car = ped.get_vehicle_ped_is_using(player.get_player_ped(pid))
+					network.request_control_of_entity(car)
+					entity.set_entity_coords_no_offset(car, pos)				
+				end
+			end
+		end
+		c.wait(50)
+	end
+	k.on = false
 end)
 
+a.teleportcartosea = c.df("传送玩家到海洋","toggle",AllspoofMenu.id,function(k)
+	while k.on do
+		for pid = 0 , 32 do
+			if pid ~= player.player_id() and player.is_player_valid(pid) then 	
+				if ped.is_ped_in_any_vehicle(player.get_player_ped(pid)) then
+					car = ped.get_vehicle_ped_is_using(player.get_player_ped(pid))
+					network.request_control_of_entity(car)
+					entity.set_entity_coords_no_offset(car, v3(-3373,-854,-5))				
+				end
+			end
+		end
+		c.wait(50)
+	end
+	k.on = false
+end)
 
-a.teleportcartoair = c.df("传送玩家上天","toggle",quanjuegao.id,function(k)
+a.teleportcartoair = c.df("传送玩家上天","toggle",AllspoofMenu.id,function(k)
 while k.on do
 for pid = 0 , 32 do
 if pid ~= player.player_id() and player.is_player_valid(pid) then 	
@@ -5078,7 +4875,7 @@ k.on = false
 end)
 
 
-a.airstrikesession = menu.add_feature("火箭雨","toggle",quanjuegao.id, function(feat,pid)
+a.airstrikesession = menu.add_feature("火箭雨","toggle",AllspoofMenu.id, function(feat,pid)
 while feat.on do
 for pid = 0 , 32 do
  if  pid ~= c.me() then 
@@ -5099,7 +4896,7 @@ feat.on = false
 end)
 
 
-a.upnsession= c.df("循环原子能枪","toggle",quanjuegao.id,function(k,pid)
+a.upnsession= c.df("循环原子能枪","toggle",AllspoofMenu.id,function(k,pid)
 while k.on do
 for pid = 0 , 32 do
 if pid ~= c.me() then
@@ -5113,36 +4910,34 @@ end
 k.on = false
 end)
 
-
-a.taskclear= c.df("冻结","toggle",quanjuegao.id,function(k,pid)
-while k.on do 
-for pid = 0, 31 do
-if pid ~= c.me() then
-pedp = player.get_player_ped(pid)
-ped.clear_ped_tasks_immediately(pedp)
-end
-end
-c.wait(5)
-end
-k.on = false
+a.taskclear= c.df("冻结","toggle",AllspoofMenu.id,function(k,pid)
+	while k.on do 
+		for pid = 0, 31 do
+			if pid ~= c.me() then
+				pedp = player.get_player_ped(pid)
+				ped.clear_ped_tasks_immediately(pedp)
+			end
+		end
+		c.wait(5)
+	end
+	k.on = false
 end)
 
-
-a.baozha= c.df("爆炸", "toggle",quanjuegao.id,function(feat, pid)
-if feat.on then
-for pid = 0, 32 do
-if pid ~= player.player_id() and player.is_player_valid(pid) then
-fire.add_explosion(player.get_player_coords(pid), 0, true, false, 0, player.get_player_ped(pid))
-system.wait(15)
-end
-end
-return HANDLER_CONTINUE
-else
-return HANDLER_POP
-end
+a.baozha= c.df("爆炸", "toggle",AllspoofMenu.id,function(feat, pid)
+	if feat.on then
+		for pid = 0, 32 do
+			if pid ~= player.player_id() and player.is_player_valid(pid) then
+				fire.add_explosion(player.get_player_coords(pid), 0, true, false, 0, player.get_player_ped(pid))
+				system.wait(15)
+			end
+		end
+		return HANDLER_CONTINUE
+	else
+		return HANDLER_POP
+	end
 end)
 
-scekick = menu.add_feature("全局禁用被动", "action", quanjuegao.id, function(feat,pid)
+scekick = menu.add_feature("全局禁用被动", "action", AllspoofMenu.id, function(feat,pid)
 	for pid = 0, 32 do	
 	if pid ~= c.me() then
     N.sEv(-909357184,pid,{1, 1})
@@ -5151,7 +4946,7 @@ scekick = menu.add_feature("全局禁用被动", "action", quanjuegao.id, functi
 	c.wait(50)
 end)
 
-clonesession = c.df("全局克隆全局","action",quanjuegao.id,function(feat,pid)
+clonesession = c.df("全局克隆全局","action",AllspoofMenu.id,function(feat,pid)
 	for pid = 0, 32 do
 		local offset = v3(0.0,0.0,0.0)
 		local rot = v3(0.0,90,0.0)
@@ -5166,37 +4961,37 @@ clonesession = c.df("全局克隆全局","action",quanjuegao.id,function(feat,pi
 	end	
 end)
 
-cargosessionplayer= c.df("货机大作战-掉帧","action",quanjuegao.id,function(k,pid)
-		for pid = 0, 31 do
+cargosessionplayer= c.df("货机末日-掉帧","action",AllspoofMenu.id,function(k,pid)
+	for pid = 0, 31 do
 		if pid ~= c.me() then		
-		pos = player.get_player_coords(pid)
-		local offset = v3(0,0,0)
-		local rot = v3(0,0,0.0)
-		local pedp = player.get_player_ped(pid)
-		cargo = spawn_vehicle(368211810,pos,0)
-		get_control_of_entity(cargo, 300)
-		entity.set_entity_god_mode(cargo, true)
-		entity.attach_entity_to_entity(cargo, pedp, 0, offset, rot, true, true, false, 0, true)
+			pos = player.get_player_coords(pid)
+			local offset = v3(0,0,0)
+			local rot = v3(0,0,0.0)
+			local pedp = player.get_player_ped(pid)
+			cargo = spawn_vehicle(368211810,pos,0)
+			get_control_of_entity(cargo, 300)
+			entity.set_entity_god_mode(cargo, true)
+			entity.attach_entity_to_entity(cargo, pedp, 0, offset, rot, true, true, false, 0, true)
 		end
-		end			
-	end)
+	end			
+end)
 
-kosatkasessionplayer= c.df("潜艇大作战-掉帧","action",quanjuegao.id,function(k,pid)
-		for pid = 0, 31 do
+kosatkasessionplayer= c.df("潜艇末日-掉帧","action",AllspoofMenu.id,function(k,pid)
+	for pid = 0, 31 do
 		if pid ~= c.me() then				
-		pos = player.get_player_coords(pid)
-		local offset = v3(0,0,0)
-		local rot = v3(0,0,0.0)
-		local pedp = player.get_player_ped(pid)
-		kosatka = spawn_vehicle(1336872304,pos,0)
-		get_control_of_entity(kosatka, 300)
-		entity.set_entity_god_mode(kosatka, true)
-		entity.attach_entity_to_entity(kosatka, pedp, 0, offset, rot, true, true, false, 0, true)
+			pos = player.get_player_coords(pid)
+			local offset = v3(0,0,0)
+			local rot = v3(0,0,0.0)
+			local pedp = player.get_player_ped(pid)
+			kosatka = spawn_vehicle(1336872304,pos,0)
+			get_control_of_entity(kosatka, 300)
+			entity.set_entity_god_mode(kosatka, true)
+			entity.attach_entity_to_entity(kosatka, pedp, 0, offset, rot, true, true, false, 0, true)
 		end
 	end	
 end)
 
-world_force = menu.add_feature("发射所有车辆", "action", quanjuegao.id, function(feat)
+world_force = menu.add_feature("发射所有车辆", "action", AllspoofMenu.id, function(feat)
     get_everything()
     system.wait(100)
     local vel, velo = v3(), v3()
@@ -5229,7 +5024,7 @@ world_force = menu.add_feature("发射所有车辆", "action", quanjuegao.id, fu
     end
 end)
 
-menu.add_feature("囚禁所有人", "action", quanjuegao.id, function(f)
+menu.add_feature("囚禁所有人", "action", AllspoofMenu.id, function(f)
 for pid = 0, 31 do
 local pos = player.get_player_coords(pid)
 local Hash = gameplay.get_hash_key("prop_gascage01")
@@ -5242,7 +5037,7 @@ local obj = object.create_object(Hash, pos, true, false)
 end
 end)
 
-cageplayer = c.df("全局困住","action",quanjuegao.id,function(k,pid)
+cageplayer = c.df("全局困住","action",AllspoofMenu.id,function(k,pid)
 	for pid = 0, 31 do
 		if pid ~= c.me() then
 			local attachhashcont = gameplay.get_hash_key("prop_gold_cont_01")
@@ -5253,7 +5048,7 @@ cageplayer = c.df("全局困住","action",quanjuegao.id,function(k,pid)
 	end	
 end)
 
-ramcar = c.df("撞击玩家","action",quanjuegao.id,function(feat,pid)
+ramcar = c.df("撞击玩家","action",AllspoofMenu.id,function(feat,pid)
 for pid = 0 ,32 do
 if pid ~= c.me() then 
 local offset = v3()
@@ -5926,47 +5721,45 @@ end)
 
 toggle12 = menu.add_feature("删除附近NPC","toggle",clearcar.id,function(feat)
 	menu.notify("删除附近所有的NPC", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
-    while feat.on do
-    Settings["pedshanchu"] = true
-    local myPed = MyPed()
-    local myPos = MyPos(myPed)
-    allpeds = ped.get_all_peds()
-    for i = 1, #allpeds do  
-    if myPed ~= allpeds[i] and myPos:magnitude(MyPos(allpeds[i])) <= 1000 then
-    entity.get_entity_model_hash(allpeds[i])
-    entity.delete_entity(allpeds[i])
-    ped.set_ped_density_multiplier_this_frame(0)
-    end
-    end
-    c.wait(5)
-    end
-    Settings["pedshanchu"] = false
-    end)
-
-    toggle12.on = Settings["pedshanchu"]
+	while feat.on do
+		Settings["pedshanchu"] = true
+		local myPed = MyPed()
+		local myPos = MyPos(myPed)
+		allpeds = ped.get_all_peds()
+		for i = 1, #allpeds do  
+			if myPed ~= allpeds[i] and myPos:magnitude(MyPos(allpeds[i])) <= 1000 then
+				entity.get_entity_model_hash(allpeds[i])
+				entity.delete_entity(allpeds[i])
+				ped.set_ped_density_multiplier_this_frame(0)
+			end
+		end
+		c.wait(5)
+	end
+	Settings["pedshanchu"] = false
+end)
+toggle12.on = Settings["pedshanchu"]
 
 toggle23 = menu.add_feature("删除附近载具","toggle",clearcar.id,function(feat)
 	menu.notify("删除附近所有的载具", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
-    while feat.on do
-	Settings["carshanchu"] = true
-    local myPed = MyPed()
-    local myPos = MyPos(myPed)
-    local myVeh = MyVeh(myPed)
-    allvehs = vehicle.get_all_vehicles()
-    for i = 1, #allvehs do
-    if myVeh ~= allvehs[i] and myPos:magnitude(MyPos(allvehs[i])) <= 1000 then
-    entity.get_entity_model_hash(allvehs[i])
-    entity.delete_entity(allvehs[i])
-    vehicle.set_vehicle_density_multipliers_this_frame(0)
-    end 
-    end  
-    c.wait(5) 
-    end
-    Settings["carshanchu"] = false
-	end)
+	while feat.on do
+		Settings["carshanchu"] = true
+		local myPed = MyPed()
+		local myPos = MyPos(myPed)
+		local myVeh = MyVeh(myPed)
+		allvehs = vehicle.get_all_vehicles()
+		for i = 1, #allvehs do
+			if myVeh ~= allvehs[i] and myPos:magnitude(MyPos(allvehs[i])) <= 1000 then
+				entity.get_entity_model_hash(allvehs[i])
+				entity.delete_entity(allvehs[i])
+				vehicle.set_vehicle_density_multipliers_this_frame(0)
+			end
+		end
+		c.wait(5) 
+	end
+	Settings["carshanchu"] = false
+end)
+toggle23.on = Settings["carshanchu"]
 
-    toggle23.on = Settings["carshanchu"]
-	
 toggle124 = menu.add_feature("删除附近实体","toggle",clearcar.id,function(feat)
 	menu.notify("删除附近所有的实体", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
     while feat.on do
@@ -5985,7 +5778,6 @@ toggle124 = menu.add_feature("删除附近实体","toggle",clearcar.id,function(
     end
     Settings["bjshanchu"] = false
     end)
-
     toggle124.on = Settings["bjshanchu"]	
 	
 toggle123 = menu.add_feature("NPC屏蔽","toggle",clearcar.id,function(feat)
@@ -6555,7 +6347,7 @@ Who_looking = menu.add_feature("偷窥者提示", "toggle", a.protoption.id, fun
 
 end)
 Who_looking.on = Settings["Who_looking"]
-	
+
 _U_Anti_spectater=menu.add_feature("阻止观战玩家","toggle",a.protoption.id,function(a)
 	menu.notify("不允许他观战你的视角", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
         local me=player.player_id()
@@ -7376,13 +7168,10 @@ end)
 
 delete_gun.on = Settings["delete_gun"]
 
-Vehicle_Control = menu.add_feature("载具选项", "parent", a.seplayer.id, function(feat)
+preset = menu.add_feature("预设载具", "parent", a.vehicleset.id, function(feat)
 end)
 
-preset = menu.add_feature("预设载具", "parent", Vehicle_Control.id, function(feat)
-end)
-
-maxspeed = menu.add_feature("限速修改", "parent", Vehicle_Control.id, function(feat)
+maxspeed = menu.add_feature("限速修改", "parent", a.vehicleset.id, function(feat)
 end)
 
 maxspeedv1 = menu.add_feature("V1", "action", maxspeed.id, function(k, pid)
@@ -7410,7 +7199,7 @@ maxspeedv5 = menu.add_feature("V5", "action", maxspeed.id, function(k, pid)
 	menu.notify("Float 300")
 end)
 
-maxgear = menu.add_feature("挡位修改", "parent", Vehicle_Control.id, function(feat)
+maxgear = menu.add_feature("挡位修改", "parent", a.vehicleset.id, function(feat)
 end)
 
 maxgear_1 = menu.add_feature("Gear 1", "action", maxgear.id, function(k, pid)
@@ -7453,6 +7242,118 @@ maxgear_8 = menu.add_feature("Gear 8", "action", maxgear.id, function(k, pid)
 	menu.notify("Done")
 end)
 
+GravityModify = menu.add_feature("重力修改", "parent", a.vehicleset.id, function(feat)
+end)
+
+GravityModify_GET = menu.add_feature("获取当前载具重力值", "action", GravityModify.id, function(k, pid)
+	if player.is_player_in_any_vehicle(c.me()) then
+		GravityModify_GET_now = vehicle.get_vehicle_gravity_amount(player.player_vehicle())
+		menu.notify(GravityModify_GET_now, "当前载具重力")
+	else
+		menu.notify("未在任何载具内")
+	end
+end)
+
+GravityModify_0 = menu.add_feature("Gravity 0", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 0)
+	menu.notify("Gravity 0")
+end)
+
+GravityModify_2 = menu.add_feature("Gravity 2", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 2)
+	menu.notify("Gravity 2")
+end)
+
+GravityModify_5 = menu.add_feature("Gravity 5", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 5)
+	menu.notify("Gravity 5")
+end)
+
+GravityModify_8 = menu.add_feature("Gravity 8", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 8)
+	menu.notify("Gravity 8")
+end)
+
+GravityModify_Def9 = menu.add_feature("Gravity 9.8 Default", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 9.8)
+	menu.notify("Gravity 9.8 Default")
+end)
+
+GravityModify_12 = menu.add_feature("Gravity 12", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 12)
+	menu.notify("Gravity 12")
+end)
+
+GravityModify_15 = menu.add_feature("Gravity 15", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 15)
+	menu.notify("Gravity 15")
+end)
+
+GravityModify_20 = menu.add_feature("Gravity 20", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 20)
+	menu.notify("Gravity 20")
+end)
+
+GravityModify_40 = menu.add_feature("Gravity 40", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 40)
+	menu.notify("Gravity 40")
+end)
+
+GravityModify_100 = menu.add_feature("Gravity 100", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 100)
+	menu.notify("Gravity 100")
+end)
+
+GravityModify_200 = menu.add_feature("Gravity 200", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 200)
+	menu.notify("Gravity 200")
+end)
+
+GravityModify_500 = menu.add_feature("Gravity 500", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 500)
+	menu.notify("Gravity 500")
+end)
+
+GravityModify_1000 = menu.add_feature("Gravity 1000", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 1000)
+	menu.notify("Gravity 1000")
+end)
+
+GravityModify_1500 = menu.add_feature("Gravity 1500", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 1500)
+	menu.notify("Gravity 1500")
+end)
+
+GravityModify_3000 = menu.add_feature("Gravity 3000", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 3000)
+	menu.notify("Gravity 3000")
+end)
+
+GravityModify_10000 = menu.add_feature("Gravity 10000", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 10000)
+	menu.notify("Gravity 10000")
+end)
+
+GravityModify_100000 = menu.add_feature("Gravity 100000", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 100000)
+	menu.notify("Gravity 100000")
+end)
+
+GravityModify_1000000 = menu.add_feature("Gravity 1000000", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 1000000)
+	menu.notify("Gravity 1000000")
+end)
+
+GravityModify_10000000 = menu.add_feature("Gravity 10000000", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 10000000)
+	menu.notify("Gravity 10000000")
+end)
+
+GravityModify_100000000 = menu.add_feature("Gravity 100000000", "action", GravityModify.id, function(k, pid)
+	vehicle.set_vehicle_gravity_amount(player.player_vehicle(), 100000000)
+	menu.notify("Gravity 100000000")
+end)
+
 ghostcarcr = menu.add_feature("恶灵骑士摩托","action",preset.id,function(k, pid)
     car = spawn_vehicle(1491277511,player.get_player_coords(c.me()),0)
     entity.set_entity_god_mode(car,true)
@@ -7470,7 +7371,7 @@ ghostcarcr = menu.add_feature("恶灵骑士摩托","action",preset.id,function(k
     ped.set_ped_into_vehicle(player.get_player_ped(c.me()),car,-1)
 end)
 
-ghostcar = menu.add_feature("11","toggle",Vehicle_Control.id,function(feat, pid)
+ghostcar = menu.add_feature("11","toggle",a.vehicleset.id,function(feat, pid)
     while feat.on do
         local titlle = "weap_xs_vehicle_weapons"
         local hashid = "muz_xs_turret_flamethrower_looping"
@@ -7667,7 +7568,7 @@ local function driftmod_ontick()
     end
 end
 
-drift = menu.add_feature("漂移模式", "toggle", Vehicle_Control.id, function(f)
+drift = menu.add_feature("漂移模式", "toggle", a.vehicleset.id, function(f)
     notify_above_map("按住Shift键进入漂移模式")
 	while f.on do
 		driftmod_ontick()
@@ -7685,7 +7586,7 @@ function getcoords(pid)
 	return player.get_player_coords(pid)
 end
 
-veh_on_water=menu.add_feature("水上驾驶","toggle",Vehicle_Control.id,function(a)
+veh_on_water=menu.add_feature("水上驾驶","toggle",a.vehicleset.id,function(a)
         while a.on and player.is_player_in_any_vehicle(player.player_id()) do
 		Settings["veh_on_water"] = true
             system.yield(0)
@@ -7761,7 +7662,7 @@ scs=1
 ssr=255
 ssg=0
 ssb=0
-smoke_colors = menu.add_feature("彩虹车轮烟色","toggle",Vehicle_Control.id,function(k)
+smoke_colors = menu.add_feature("彩虹车轮烟色","toggle",a.vehicleset.id,function(k)
 	local myped = player.get_player_ped(player.player_id())
 	local color
 	while k.on do
@@ -7833,9 +7734,9 @@ smoke_colors = menu.add_feature("彩虹车轮烟色","toggle",Vehicle_Control.id
 end)
 smoke_colors.on = Settings["smoke_colors"]
 
-smoke_delay = menu.add_feature("车轮烟雾彩虹速度","autoaction_value_i",Vehicle_Control.id)
+smoke_delay = menu.add_feature("车轮烟雾彩虹速度","autoaction_value_i",a.vehicleset.id)
 
-_U_vehicle_flier=menu.add_feature("载具飞行","slider",Vehicle_Control.id,function(a)
+_U_vehicle_flier=menu.add_feature("载具飞行","slider",a.vehicleset.id,function(a)
         while a.on do
             system.yield(0)
             local me=player.player_id()
@@ -7892,7 +7793,7 @@ _U_vehicle_flier=menu.add_feature("载具飞行","slider",Vehicle_Control.id,fun
 
 _U_vehicle_flier.max,_U_vehicle_flier.min,_U_vehicle_flier.mod=1500,50,50
 
-drive2waypoint = menu.add_feature("自动驾驶至标记点","value_str",Vehicle_Control.id,function(feat)
+drive2waypoint = menu.add_feature("自动驾驶至标记点","value_str",a.vehicleset.id,function(feat)
         if feat.on then
             if ped.is_ped_in_any_vehicle(player.get_player_ped(player.player_id())) then
 				local v2dest = ui.get_waypoint_coord()
@@ -7927,14 +7828,14 @@ drive2waypoint = menu.add_feature("自动驾驶至标记点","value_str",Vehicle
   "暴躁",
   "正常"
 })
-autospd = menu.add_feature("驾驶速度", "action_slider", Vehicle_Control.id, function(feat) 
+autospd = menu.add_feature("驾驶速度", "action_slider", a.vehicleset.id, function(feat) 
 end)
 autospd.max = 200
 autospd.min = 5
 autospd.mod = 5
 autospd.value = 5
 
-firemk2= c.df("载具快速开火","toggle",Vehicle_Control.id,function(feat,pid)
+firemk2= c.df("载具快速开火","toggle",a.vehicleset.id,function(feat,pid)
 	if feat.on then
 		Settings["zaijukuaisukaihuo"] = true
 		local plyped = player.get_player_ped(c.me())
@@ -7952,7 +7853,7 @@ end)
 
 firemk2.on = Settings["zaijukuaisukaihuo"]
 
-SpeedupMyVeh=menu.add_feature("自动加速","toggle",Vehicle_Control.id,function(a)
+SpeedupMyVeh=menu.add_feature("自动加速","toggle",a.vehicleset.id,function(a)
         local state=0
         while a.on do
             system.yield(0)
@@ -7966,7 +7867,7 @@ SpeedupMyVeh=menu.add_feature("自动加速","toggle",Vehicle_Control.id,functio
     end)
 SpeedupMyVeh.on = Settings["SpeedupMyVeh"]
 	
-U_veh_boost=menu.add_feature("载具加速瞬间充能","toggle",Vehicle_Control.id,function(a)
+U_veh_boost=menu.add_feature("载具加速瞬间充能","toggle",a.vehicleset.id,function(a)
 Settings["Block_M2K"] = true
 local state=0
 while a.on do
@@ -7982,7 +7883,7 @@ Settings["Block_M2K"] = false
 end)	
 U_veh_boost.on = Settings["Block_M2K"]			
 			
-Block_M2K = menu.add_feature("火箭加速瞬间充能(MK2)", "toggle",Vehicle_Control.id, function(feat)
+Block_M2K = menu.add_feature("火箭加速瞬间充能(MK2)", "toggle",a.vehicleset.id, function(feat)
 Settings["Block_M2K"] = true
 if feat.on then
 local myped = player.get_player_ped(player.player_id())
@@ -7997,7 +7898,7 @@ return HANDLER_POP
 end)
 Block_M2K.on = Settings["Block_M2K"]		
 
-FUCK_VEHCAR = menu.add_feature("载具修复", "toggle", Vehicle_Control.id,function(feat)
+FUCK_VEHCAR = menu.add_feature("载具修复", "toggle", a.vehicleset.id,function(feat)
 	Settings["FUCK_VEHCAR"] = true
 	if feat.on then
 		local myped = player.get_player_ped(player.player_id())
@@ -8013,7 +7914,7 @@ FUCK_VEHCAR = menu.add_feature("载具修复", "toggle", Vehicle_Control.id,func
 end)
 FUCK_VEHCAR.on = Settings["FUCK_VEHCAR"]	
 	
-auto_fz=menu.add_feature("自动翻转","toggle",Vehicle_Control.id,function(a)
+auto_fz=menu.add_feature("自动翻转","toggle",a.vehicleset.id,function(a)
         while a.on do
 		Settings["auto_fz"] = true
             system.yield(0)
@@ -8027,7 +7928,7 @@ auto_fz=menu.add_feature("自动翻转","toggle",Vehicle_Control.id,function(a)
     end)	
 auto_fz.on = Settings["auto_fz"]
 
-	getintotrain= c.df("进入火车/电车","action",Vehicle_Control.id,function(k)
+	getintotrain= c.df("进入火车/电车","action",a.vehicleset.id,function(k)
 pedmy = player.get_player_ped(c.me())
 veh = vehicle.get_all_vehicles()
 for i = 1,#veh do
@@ -9735,7 +9636,7 @@ mypos = player.get_player_coords(c.me())
 teleporttopos.hidden = false
 ui.notify_above_map("保存完毕", "", 200)
 end)
-		
+
 teleporttopos= c.df("传送到保存位置","action",rwugn.id,function(k,pid)
 pedmy = player.get_player_ped(c.me())
 entity.set_entity_coords_no_offset(pedmy,mypos)
@@ -9751,38 +9652,39 @@ menu.notify('修复完成,重新做拍照任务即可','',3)
 end)
 
 stopcutscene= c.df("跳过过场动画","action",rwugn.id,function(k,pid)
-cutscene.stop_cutscene_immediately()
-cutscene.remove_cutscene()
+	cutscene.stop_cutscene_immediately()
+	cutscene.remove_cutscene()
 end)
 
-offsetpickuptome= c.df("传送任务实体到我", "action", rwugn.id, function(k)
-mypos  = player.get_player_coords(c.me())
-allpickup = object.get_all_pickups()
-for i = 1, #allpickup  do
-entity.set_entity_coords_no_offset(allpickup[i],mypos)
-c.wait(1)
-end
+offsetpickuptome= c.df("拾取附近所有物品", "action", rwugn.id, function(k)
+	mypos = player.get_player_coords(c.me())
+	allpickup = object.get_all_pickups()
+	for i = 1, #allpickup do
+		entity.set_entity_coords_no_offset(allpickup[i],mypos)
+		c.wait(1)
+	end
 end)
 
 crashteam= c.df("崩溃队友","action",rwugn.id,function(k,pid)
-for pid = 0, 4 do
-if pid ~= c.me() then
-SECrah(pid)
-end
-end
+	for pid = 0, 4 do
+		if pid ~= c.me() then
+			SECrah(pid)
+		end
+	end
 end)
 
 vehcar123 = menu.add_feature("预设载具","parent", rwugn.id, function()
 end)
 
+
 GiveCar = menu.add_feature("骷髅马","action",vehcar123.id,function()
-pos = player.get_player_coords(player.player_id())
-rot = entity.get_entity_rotation(player.get_player_ped(player.player_id()))
-dir = rot
-dir:transformRotToDir()
-dir = dir * 5
-pos = pos + dir
-spawn_vehicle(410882957,pos,0)
+	pos = player.get_player_coords(player.player_id())
+	rot = entity.get_entity_rotation(player.get_player_ped(player.player_id()))
+	dir = rot
+	dir:transformRotToDir()
+	dir = dir * 5
+	pos = pos + dir
+	spawn_vehicle(410882957,pos,0)
 end)
 
 GiveCar2 = menu.add_feature("义警","action",vehcar123.id,function()
@@ -9856,33 +9758,27 @@ ui.notify_above_map("队友必须上车", "错误提示", 96)
 end
 end)
 
-GiveAllGuns = c.df("给予全员全部武器","action",rwugn.id,function()
-        for pid = 0, 4 do
-            if pid ~= player.player_id() and player.is_player_valid(pid) then
-                local allweaponhashes = weapon.get_all_weapon_hashes()
-                for i = 1, #allweaponhashes do
-                  requestmodel(allweaponhashes[i])
-                  weapon.give_delayed_weapon_to_ped(player.get_player_ped(pid), allweaponhashes[i], 0, 0)
-				  weapon.set_ped_ammo(player.get_player_ped(pid),allweaponhashes[i],9999)
-                  streaming.set_model_as_no_longer_needed(allweaponhashes[i])
-              end
-          end
-      end
- end)
-
-GiveGuns = c.df("全员获得火神机枪","action",rwugn.id,function()
-for pid = 0,3 do
-pedp = player.get_player_ped(pid)
-minigun = 1119849093
-weapon.give_delayed_weapon_to_ped(pedp,minigun,0,1)
-weapon.set_ped_ammo(pedp,minigun,9999)
-end
+GiveAllGuns = c.df("全员获得全部武器","action",rwugn.id,function()
+	for pid = 0, 4 do
+		if pid ~= player.player_id() and player.is_player_valid(pid) then
+			local allweaponhashes = weapon.get_all_weapon_hashes()
+			for i = 1, #allweaponhashes do
+				requestmodel(allweaponhashes[i])
+				weapon.give_delayed_weapon_to_ped(player.get_player_ped(pid), allweaponhashes[i], 0, 0)
+				weapon.set_ped_ammo(player.get_player_ped(pid),allweaponhashes[i],9999)
+				streaming.set_model_as_no_longer_needed(allweaponhashes[i])
+			end
+		end
+	end
 end)
 
-GoSubmarine = menu.add_feature("传送到虎鲸","action",rwugn.id,function()
-ui.notify_above_map("请先唤出虎鲸", "友情提示", 15)
-pedmy = player.get_player_ped(player.player_id())
-entity.set_entity_coords_no_offset(pedmy,v3(1561.224,386.659,-49.685))
+GiveGuns = c.df("全员获得火神机枪","action",rwugn.id,function()
+	for pid = 0, 4 do
+		pedp = player.get_player_ped(pid)
+		minigun = 1119849093
+		weapon.give_delayed_weapon_to_ped(pedp,minigun,0,1)
+		weapon.set_ped_ammo(pedp,minigun,9999)
+	end
 end)
 
 menu.add_feature("移除NPC","value_str",rwugn.id,function(feat)
