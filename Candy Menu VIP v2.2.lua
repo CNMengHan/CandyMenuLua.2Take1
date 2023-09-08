@@ -143,6 +143,20 @@ Settings["vehicle_arms2"] = false
 Settings["auto_clean"] = false
 Settings["Who_looking"] = false
 
+local set_global_i <const> = script.set_global_i
+local recovery <const> = 4536533
+local playerCharacter <const> = stats.stat_get_int(gameplay.get_hash_key("mpply_last_mp_char"), 0)
+local natives <const> = require("Candy.natives2845")
+local currentMoney = natives.MONEY.NETWORK_GET_VC_WALLET_BALANCE(playerCharacter)
+local moneyEarned = 0
+local moneyEarnedPerMinute = 0
+local startTime = 0
+local wait = false
+local joaat <const> = gameplay.get_hash_key
+local overlay
+
+----------------------------------------------------------------------
+
 function Print(text)
 print(text)
 local txt = Cur_Date_Time()
@@ -435,7 +449,7 @@ function player_history.get_date()
 	return month, day, year, time, date
 end
 
-a.mainmenu = c.df("Candy Menu VIP","parent",0)
+a.mainmenu = c.df("#FFDB7093#Candy Menu VIP Main","parent",0)
 local function Cped(type, hash, pos, dir)
 	streaming.request_model(hash)
     while not streaming.has_model_loaded(hash) do
@@ -614,7 +628,8 @@ end
 Load_Settings()
 
 CandyMenu = c.pdf("Candy Menu VIP","parent",0) 
-crashCrash = c.pdf("崩溃选项","parent",CandyMenu.id) 
+crashCrash = c.pdf("崩溃选项","parent",CandyMenu.id)
+
 a.seplayer = c.df("玩家自我选项","parent",a.mainmenu.id)
 a.vehicleset = c.df("载具修改选项","parent",a.mainmenu.id)
 a.teleport = c.df("传送选项", "parent", a.seplayer.id)
@@ -4248,36 +4263,37 @@ local function give_godmode(e, bool)
 end
 
 local function spawn_vehicle(hash, coords, dir, maxed, god)
-request_model(hash, 1000)
-if maxed then	
-entity.set_entity_coords_no_offset(car, coords)
-entity.set_entity_heading(car, dir)
-if god then
-give_godmode(car, true)
-end
-stop_using_hash(hash)
-return car
-else
-local car = vehicle.create_vehicle(hash, coords, dir, true, false)
-if god then
-give_godmode(car, true)
-end
-stop_using_hash(hash)
-return car
-end
+	request_model(hash, 1000)
+	if maxed then	
+		entity.set_entity_coords_no_offset(car, coords)
+		entity.set_entity_heading(car, dir)
+		if god then
+			give_godmode(car, true)
+		end
+		stop_using_hash(hash)
+		return car
+	else
+		local car = vehicle.create_vehicle(hash, coords, dir, true, false)
+		if god then
+			give_godmode(car, true)
+		end
+		stop_using_hash(hash)
+		return car
+	end
 end
 
+
 local function bianshen (J)
-local hash
-hash = J
-streaming.request_model(hash)
-while(not streaming.has_model_loaded(hash))
-do
-c.wait(0)
-end
-player.set_player_model(hash)
-streaming.set_model_as_no_longer_needed(hash)
-return HANDLER_POP
+	local hash
+	hash = J
+	streaming.request_model(hash)
+	while(not streaming.has_model_loaded(hash))
+	do
+		c.wait(0)
+	end
+	player.set_player_model(hash)
+	streaming.set_model_as_no_longer_needed(hash)
+	return HANDLER_POP
 end
 
 local function suicide()
@@ -4365,7 +4381,7 @@ local function Cped(type, hash, coords, dir)
 	c.sR(hash)
 	return ped
 end
-	
+
 local function stat_set_float(hash, prefix, value, save)
     save = save or true
     local hash0, hash1 = hash
@@ -5068,40 +5084,6 @@ end)
 
 crash1 = menu.add_feature("全局崩溃","parent",a.sessionoption.id,function(feat)
 end)
-
-mine_crash = menu.add_feature("领域","action",crash1.id, function()
-	local mypid = player.get_player_ped(player.player_id())
-	if lll then
-		notify_above_map("已启用")
-		return
-	end
-	notify_above_map("开启中...")
-	caca1 = taomocar1(1784254509,player.player_id(),mypid,2)
-	caca2 = taomocar1(2091594960,player.player_id(),mypid,3)
-	system.wait(1000)
-	notify_above_map("开启成功")
-	lll = true
-end)
-
-mine1_crash = menu.add_feature("新领域单","action",crash1.id, function()
-	local pos = v3(460.586,5571.714, 781.179)
-	notify_above_map("创建中...")
-	NNNNC = Cped(25,0x9B22DBAF,pos,0)
-	entity.freeze_entity(NNNNC, true)
-	entity.set_entity_visible(NNNNC,false)
-	entity.set_entity_god_mode(NNNNC, true)
-	network.request_control_of_entity(NNNNC)
-	local offset = v3(0,0,-10)
-	local rot = v3(0.0,0,0.0)
-	car = spawn_vehicle(1784254509,pos,599)
-	entity.set_entity_visible(car,false)
-	entity.set_entity_god_mode(car, true)
-	network.request_control_of_entity(car)
-	entity.attach_entity_to_entity(car, NNNNC, 0, offset, rot, true, false, false, 0, true)
-	system.wait(1000)
-	notify_above_map("创建完成")
-end)
-
 
 modelcrash = menu.add_feature("全局崩溃", "action",crash1.id, function(feat)
 if lll then
@@ -6198,25 +6180,23 @@ end
 end)
 objtinvisible.on = Settings["wutipingbi"]
 
-
 anticrashcam= menu.add_feature("安全区域", "toggle",a.protoption.id, function(feat)
-menu.notify("上天咯!", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
-local bs = v3(50000, 50000, 10000)
-local pos = entity.get_entity_coords(player.get_player_ped(c.me()))
-local pedmy = player.get_player_ped(c.me())
-while feat.on do
-get_control_of_entity(pedmy,300)
-entity.set_entity_visible(pedmy,false)
-entity.set_entity_coords_no_offset(pedmy, bs)		
-c.wait(100)
-end
-feat.on = false
-get_control_of_entity(pedmy,300)
-entity.set_entity_coords_no_offset(pedmy, pos)
-entity.set_entity_visible(pedmy,true)
+	menu.notify("上天咯!", "Candy Menu VIP", 6, RGBAToInt(0, 255, 0))
+	local bs = v3(50000, 50000, 10000)
+	local pos = entity.get_entity_coords(player.get_player_ped(c.me()))
+	local pedmy = player.get_player_ped(c.me())
+	while feat.on do
+		get_control_of_entity(pedmy,300)
+		entity.set_entity_visible(pedmy,false)
+		entity.set_entity_coords_no_offset(pedmy, bs)		
+		c.wait(100)
+	end
+	feat.on = false
+	get_control_of_entity(pedmy,300)
+	entity.set_entity_coords_no_offset(pedmy, pos)
+	entity.set_entity_visible(pedmy,true)
 end)
 
-		
 function intToIp(num)		
     ip=''
     local int16=string.format("%x",num)
@@ -6233,7 +6213,7 @@ function intToIp(num)
     end
     return ip
 end
-	
+
 _U_hack_list={}
 _U_lisc_hack=menu.add_feature("作弊者嘲讽","toggle",a.protoption.id,function(a)
 	while a.on do
@@ -6647,34 +6627,6 @@ for i = 1, #commonmodelchangerlist1 do
 	end)
 end
 
-menu.add_feature("犀牛","action",cloths.id,function()
-        if player.get_player_model(player.player_id()) ~= 2627665880 then
-        modelchange(gameplay.get_hash_key("mp_f_freemode_01"))
-        end
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 0, 0, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 1, 91, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 11, 300, 4, 4)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 2, 42, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 3, 8, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 4, 86, 4, 4)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 6, 58, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 7, 0, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 8, 105, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 5, 0, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 10, 0, 0, 0)
-        ped.set_ped_component_variation(player.get_player_ped(player.player_id()), 9, 0, 0, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 0, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 1, 24, 9, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 2, 6, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 3, -1, 0, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 4, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 5, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 6, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 7, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 8, -1, -1, 0)
-        ped.set_ped_prop_index(player.get_player_ped(player.player_id()), 9, -1, -1, 0)
-    end
-)
 menu.add_feature("警服","action",cloths.id,function()
     local component = {{0, 0},{0, 6},{0, 14},{0, 34},{0, 0},{0, 25},{0, 0},{0, 35},{0, 0},{0, 0},{0, 48}}
     local prop = {{0, 45, 0},{1, 11, 0},{2, 4294967295, 0},{6, 4294967295, -1},{7, 4294967295, -1}}
@@ -9735,27 +9687,27 @@ Flash1 = c.df("向后传送","action",rwugn.id,function()
 end)
 
 FollowMe = c.df("传送队友到我","action",rwugn.id,function()
-local car
-local pos = v3()
-if player.player_id() == 0 then
-pid = 1
-else
-pid = 0
-end
-pos = entity.get_entity_coords(player.get_player_ped(player.player_id()))
-rot = entity.get_entity_rotation(player.get_player_ped(player.player_id()))
-dir = rot
-dir:transformRotToDir()
-dir = dir * 3
-pos = pos + dir
-if ped.is_ped_in_any_vehicle(player.get_player_ped(pid)) then
-car = ped.get_vehicle_ped_is_using(player.get_player_ped(pid))
-network.request_control_of_entity(car)
-entity.set_entity_coords_no_offset(car, pos)
-ui.notify_above_map("如果传送失败多点几次", "友情提示", 69)
-else
-ui.notify_above_map("队友必须上车", "错误提示", 96)
-end
+	local car
+	local pos = v3()
+	if player.player_id() == 0 then
+		pid = 1
+	else
+		pid = 0
+	end
+	pos = entity.get_entity_coords(player.get_player_ped(player.player_id()))
+	rot = entity.get_entity_rotation(player.get_player_ped(player.player_id()))
+	dir = rot
+	dir:transformRotToDir()
+	dir = dir * 3
+	pos = pos + dir
+	if ped.is_ped_in_any_vehicle(player.get_player_ped(pid)) then
+		car = ped.get_vehicle_ped_is_using(player.get_player_ped(pid))
+		network.request_control_of_entity(car)
+		entity.set_entity_coords_no_offset(car, pos)
+		ui.notify_above_map("如果传送失败多点几次", "友情提示", 69)
+	else
+		ui.notify_above_map("队友必须上车", "错误提示", 96)
+	end
 end)
 
 GiveAllGuns = c.df("全员获得全部武器","action",rwugn.id,function()
@@ -9822,7 +9774,7 @@ deleobject= c.df("移除附近物体", "action", rwugn.id, function(k)
 		c.wait(1)
 	end
 end)
-	
+
 deleveh= c.df("移除附近载具", "action", rwugn.id, function(k)
 	allvehs = vehicle.get_all_vehicles()
 	for i = 1,#allvehs do
@@ -9830,3 +9782,186 @@ deleveh= c.df("移除附近载具", "action", rwugn.id, function(k)
 		c.wait(1)            
 	end
 end)
+
+
+
+local function startTimer()
+    startTime = os.time()
+end
+
+local function stopTimer()
+    startTime = 0
+end
+
+local function getElapsedSeconds()
+    if startTime ~= 0 then
+        return os.time() - startTime
+    else
+        return 0
+    end
+end
+
+local function trigger_transaction(hash, amount)
+    set_global_i(recovery + 1, 2147483646)
+    set_global_i(recovery + 7, 2147483647)
+    set_global_i(recovery + 6, 0)
+    set_global_i(recovery + 5, 0)
+    set_global_i(recovery + 3, hash)
+    set_global_i(recovery + 2, amount)
+    set_global_i(recovery, 2)
+end
+
+-- a.singleopmoney = c.df("Candy Menu VIP Extensions", "parent", a.opmoney.id)
+local singleopmoney <const> = menu.add_feature("#FFDB7093#Candy Menu VIP Extensions", "parent", opmoney).id
+
+local Options = {
+    {name = "1500万 JOB_BONUS", hash = joaat("SERVICE_EARN_JOB_BONUS"), amount = 15000000},
+    {name = "1500万 BEND_JOB", hash = joaat("SERVICE_EARN_BEND_JOB"), amount = 15000000},
+    {name = "1500万 GANGOPS_AWARD_MASTERMIND_4", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_MASTERMIND_4"), amount = 15000000},        
+    {name = "1500万 JOB_BONUS_CRIMINAL_MASTERMIND", hash = joaat("SERVICE_EARN_JOB_BONUS_CRIMINAL_MASTERMIND"), amount = 15000000},  
+    {name = "700万 GANGOPS_AWARD_MASTERMIND_3", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_MASTERMIND_3"), amount = 7000000},
+    {name = "360万 CASINO_HEIST_FINALE", hash = joaat("SERVICE_EARN_CASINO_HEIST_FINALE"), amount = 3619000},
+    {name = "300万 AGENCY_STORY_FINALE", hash = joaat("SERVICE_EARN_AGENCY_STORY_FINALE"), amount = 3000000},
+    {name = "300万 GANGOPS_AWARD_MASTERMIND_2", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_MASTERMIND_2"), amount = 3000000},
+    {name = "250万 ISLAND_HEIST_FINALE", hash = joaat("SERVICE_EARN_ISLAND_HEIST_FINALE"), amount = 2550000},
+    {name = "250万 GANGOPS_FINALE", hash = joaat("SERVICE_EARN_GANGOPS_FINALE"), amount = 2550000},
+    {name = "200万 JOB_BONUS_HEIST_AWARD", hash = joaat("SERVICE_EARN_JOB_BONUS_HEIST_AWARD"), amount = 2000000},
+    {name = "200万 TUNER_ROBBERY_FINALE", hash = joaat("SERVICE_EARN_TUNER_ROBBERY_FINALE"), amount = 2000000},
+    {name = "200万 GANGOPS_AWARD_ORDER", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_ORDER"), amount = 2000000},
+    {name = "200万 FROM_BUSINESS_HUB_SELL", hash = joaat("SERVICE_EARN_FROM_BUSINESS_HUB_SELL"), amount = 2000000},
+    {name = "150万 GANGOPS_AWARD_LOYALTY_AWARD_4", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_LOYALTY_AWARD_4"), amount = 1500000},  
+    {name = "120万 BOSS_AGENCY", hash = joaat("SERVICE_EARN_BOSS_AGENCY"), amount = 1200000},
+    {name = "100万 DAILY_OBJECTIVES", hash = joaat("SERVICE_EARN_DAILY_OBJECTIVES"), amount = 1000000},
+    {name = "100万 MUSIC_STUDIO_SHORT_TRIP", hash = joaat("SERVICE_EARN_MUSIC_STUDIO_SHORT_TRIP"), amount = 1000000},
+    {name = "100万 DAILY_OBJECTIVE_EVENT", hash = joaat("SERVICE_EARN_DAILY_OBJECTIVE_EVENT"), amount = 1000000},
+    {name = "100万 JUGGALO_STORY_MISSION", hash = joaat("SERVICE_EARN_JUGGALO_STORY_MISSION"), amount = 1000000},
+    {name = "70万 GANGOPS_AWARD_LOYALTY_AWARD_3", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_LOYALTY_AWARD_3"), amount = 700000},   
+    {name = "68万 BETTING", hash = joaat("SERVICE_EARN_BETTING"), amount = 680000},
+    {name = "62万 FROM_VEHICLE_EXPORT", hash = joaat("SERVICE_EARN_FROM_VEHICLE_EXPORT"), amount = 620000},
+    {name = "50万 ISLAND_HEIST_AWARD_MIXING_IT_UP", hash = joaat("SERVICE_EARN_ISLAND_HEIST_AWARD_MIXING_IT_UP"), amount = 500000},
+    {name = "50万 WINTER_22_AWARD_JUGGALO_STORY", hash = joaat("SERVICE_EARN_WINTER_22_AWARD_JUGGALO_STORY"), amount = 500000},
+    {name = "50万 CASINO_AWARD_STRAIGHT_FLUSH", hash = joaat("SERVICE_EARN_CASINO_AWARD_STRAIGHT_FLUSH"), amount = 500000},
+    {name = "40万 ISLAND_HEIST_AWARD_PROFESSIONAL", hash = joaat("SERVICE_EARN_ISLAND_HEIST_AWARD_PROFESSIONAL"), amount = 400000},
+    {name = "40万 ISLAND_HEIST_AWARD_CAT_BURGLAR", hash = joaat("SERVICE_EARN_ISLAND_HEIST_AWARD_CAT_BURGLAR"), amount = 400000},
+    {name = "40万 ISLAND_HEIST_AWARD_ELITE_THIEF", hash = joaat("SERVICE_EARN_ISLAND_HEIST_AWARD_ELITE_THIEF"), amount = 400000},
+    {name = "40万 ISLAND_HEIST_AWARD_THE_ISLAND_HEIST", hash = joaat("SERVICE_EARN_ISLAND_HEIST_AWARD_THE_ISLAND_HEIST"), amount = 400000},
+    {name = "35万 CASINO_HEIST_AWARD_ELITE_THIEF", hash = joaat("SERVICE_EARN_CASINO_HEIST_AWARD_ELITE_THIEF"), amount = 350000},
+    {name = "30万 AMBIENT_JOB_BLAST", hash = joaat("SERVICE_EARN_AMBIENT_JOB_BLAST"), amount = 300000},
+    {name = "30万 PREMIUM_JOB", hash = joaat("SERVICE_EARN_PREMIUM_JOB"), amount = 300000},
+    {name = "30万 GANGOPS_AWARD_LOYALTY_AWARD_2", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_LOYALTY_AWARD_2"), amount = 300000},
+    {name = "30万 CASINO_HEIST_AWARD_ALL_ROUNDER", hash = joaat("SERVICE_EARN_CASINO_HEIST_AWARD_ALL_ROUNDER"), amount = 300000},
+    {name = "30万 ISLAND_HEIST_AWARD_PRO_THIEF", hash = joaat("SERVICE_EARN_ISLAND_HEIST_AWARD_PRO_THIEF"), amount = 300000},
+    {name = "30万 YOHAN_SOURCE_GOODS", hash = joaat("SERVICE_EARN_YOHAN_SOURCE_GOODS"), amount = 300000},
+    {name = "27万 SMUGGLER_AGENCY", hash = joaat("SERVICE_EARN_SMUGGLER_AGENCY"), amount = 270000},
+    {name = "25万 FIXER_AWARD_AGENCY_STORY", hash = joaat("SERVICE_EARN_FIXER_AWARD_AGENCY_STORY"), amount = 250000},
+    {name = "25万 CASINO_HEIST_AWARD_PROFESSIONAL", hash = joaat("SERVICE_EARN_CASINO_HEIST_AWARD_PROFESSIONAL"), amount = 250000},
+    {name = "20万 GANGOPS_AWARD_SUPPORTING", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_SUPPORTING"), amount = 200000},
+    {name = "20万 COLLECTABLES_ACTION_FIGURES", hash = joaat("SERVICE_EARN_COLLECTABLES_ACTION_FIGURES"), amount = 200000},
+    {name = "20万 ISLAND_HEIST_AWARD_GOING_ALONE", hash = joaat("SERVICE_EARN_ISLAND_HEIST_AWARD_GOING_ALONE"), amount = 200000},
+    {name = "20万 JOB_BONUS_FIRST_TIME_BONUS", hash = joaat("SERVICE_EARN_JOB_BONUS_FIRST_TIME_BONUS"), amount = 200000},
+    {name = "20万 GANGOPS_AWARD_FIRST_TIME_XM_SILO", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_FIRST_TIME_XM_SILO"), amount = 200000},
+    {name = "20万 DOOMSDAY_FINALE_BONUS", hash = joaat("SERVICE_EARN_DOOMSDAY_FINALE_BONUS"), amount = 200000},
+    {name = "20万 GANGOPS_AWARD_FIRST_TIME_XM_BASE", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_FIRST_TIME_XM_BASE"), amount = 200000},
+    {name = "20万 COLLECTABLE_COMPLETED_COLLECTION", hash = joaat("SERVICE_EARN_COLLECTABLE_COMPLETED_COLLECTION"), amount = 200000},
+    {name = "20万 ISLAND_HEIST_ELITE_CHALLENGE", hash = joaat("SERVICE_EARN_ISLAND_HEIST_ELITE_CHALLENGE"), amount = 200000},
+    {name = "20万 AMBIENT_JOB_CHECKPOINT_COLLECTION", hash = joaat("SERVICE_EARN_AMBIENT_JOB_CHECKPOINT_COLLECTION"), amount = 200000},
+    {name = "20万 GANGOPS_AWARD_FIRST_TIME_XM_SUBMARINE", hash = joaat("SERVICE_EARN_GANGOPS_AWARD_FIRST_TIME_XM_SUBMARINE"), amount = 200000},
+    {name = "20万 ISLAND_HEIST_AWARD_TEAM_WORK", hash = joaat("SERVICE_EARN_ISLAND_HEIST_AWARD_TEAM_WORK"), amount = 200000},
+    {name = "20万 CASINO_HEIST_ELITE_DIRECT", hash = joaat("SERVICE_EARN_CASINO_HEIST_ELITE_DIRECT"), amount = 200000},
+    {name = "20万 CASINO_HEIST_ELITE_STEALTH", hash = joaat("SERVICE_EARN_CASINO_HEIST_ELITE_STEALTH"), amount = 200000},
+    {name = "20万 AMBIENT_JOB_TIME_TRIAL", hash = joaat("SERVICE_EARN_AMBIENT_JOB_TIME_TRIAL"), amount = 200000},
+    {name = "20万 CASINO_HEIST_AWARD_UNDETECTED", hash = joaat("SERVICE_EARN_CASINO_HEIST_AWARD_UNDETECTED"), amount = 200000},
+    {name = "20万 CASINO_HEIST_ELITE_SUBTERFUGE", hash = joaat("SERVICE_EARN_CASINO_HEIST_ELITE_SUBTERFUGE"), amount = 200000},
+    {name = "20万 GANGOPS_ELITE_XM_SILO", hash = joaat("SERVICE_EARN_GANGOPS_ELITE_XM_SILO"), amount = 200000},
+    {name = "19万 VEHICLE_SALES", hash = joaat("SERVICE_EARN_VEHICLE_SALES"), amount = 190000},
+    {name = "18万 JOBS", hash = joaat("SERVICE_EARN_JOBS"), amount = 180000},
+    {name = "16.5万 AMBIENT_JOB_RC_TIME_TRIAL", hash = joaat("SERVICE_EARN_AMBIENT_JOB_RC_TIME_TRIAL"), amount = 165000},
+    {name = "15万 AMBIENT_JOB_BEAST", hash = joaat("SERVICE_EARN_AMBIENT_JOB_BEAST"), amount = 150000},
+    {name = "15万 CASINO_HEIST_AWARD_IN_PLAIN_SIGHT", hash = joaat("SERVICE_EARN_CASINO_HEIST_AWARD_IN_PLAIN_SIGHT"), amount = 150000},
+    {name = "15万 AMBIENT_JOB_SOURCE_RESEARCH", hash = joaat("SERVICE_EARN_AMBIENT_JOB_SOURCE_RESEARCH"), amount = 150000},
+    {name = "15万 GANGOPS_ELITE_XM_SUBMARINE", hash = joaat("SERVICE_EARN_GANGOPS_ELITE_XM_SUBMARINE"), amount = 150000},
+    {name = "12万 AMBIENT_JOB_KING", hash = joaat("SERVICE_EARN_AMBIENT_JOB_KING"), amount = 120000},
+    {name = "12万 AMBIENT_JOB_PENNED_IN", hash = joaat("SERVICE_EARN_AMBIENT_JOB_PENNED_IN"), amount = 120000},
+    {name = "11.5万 SIGHTSEEING_REWARD", hash = joaat("SERVICE_EARN_SIGHTSEEING_REWARD"), amount = 115000},
+    {name = "10万 CASINO_AWARD_HIGH_ROLLER_PLATINUM", hash = joaat("SERVICE_EARN_CASINO_AWARD_HIGH_ROLLER_PLATINUM"), amount = 100000},
+    {name = "10万 TUNER_AWARD_BOLINGBROKE_ASS", hash = joaat("SERVICE_EARN_TUNER_AWARD_BOLINGBROKE_ASS"), amount = 100000},
+    {name = "10万 CASINO_AWARD_FULL_HOUSE", hash = joaat("SERVICE_EARN_CASINO_AWARD_FULL_HOUSE"), amount = 100000},
+    {name = "10万 AGENCY_SECURITY_CONTRACT", hash = joaat("SERVICE_EARN_AGENCY_SECURITY_CONTRACT"), amount = 100000},
+    {name = "10万 DAILY_STASH_HOUSE_COMPLETED", hash = joaat("SERVICE_EARN_DAILY_STASH_HOUSE_COMPLETED"), amount = 100000},
+    {name = "10万 CASINO_AWARD_MISSION_SIX_FIRST_TIME", hash = joaat("SERVICE_EARN_CASINO_AWARD_MISSION_SIX_FIRST_TIME"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_CHALLENGES", hash = joaat("SERVICE_EARN_AMBIENT_JOB_CHALLENGES"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_METAL_DETECTOR", hash = joaat("SERVICE_EARN_AMBIENT_JOB_METAL_DETECTOR"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_HOT_PROPERTY", hash = joaat("SERVICE_EARN_AMBIENT_JOB_HOT_PROPERTY"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_CLUBHOUSE_CONTRACT", hash = joaat("SERVICE_EARN_AMBIENT_JOB_CLUBHOUSE_CONTRACT"), amount = 100000},
+    {name = "10万 TUNER_AWARD_FLEECA_BANK", hash = joaat("SERVICE_EARN_TUNER_AWARD_FLEECA_BANK"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_SMUGGLER_PLANE", hash = joaat("SERVICE_EARN_AMBIENT_JOB_SMUGGLER_PLANE"), amount = 100000},
+    {name = "10万 FIXER_AWARD_SHORT_TRIP", hash = joaat("SERVICE_EARN_FIXER_AWARD_SHORT_TRIP"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_SMUGGLER_TRAIL", hash = joaat("SERVICE_EARN_AMBIENT_JOB_SMUGGLER_TRAIL"), amount = 100000},
+    {name = "10万 TUNER_AWARD_METH_JOB", hash = joaat("SERVICE_EARN_TUNER_AWARD_METH_JOB"), amount = 100000},
+    {name = "10万 CASINO_HEIST_AWARD_SMASH_N_GRAB", hash = joaat("SERVICE_EARN_CASINO_HEIST_AWARD_SMASH_N_GRAB"), amount = 100000},
+    {name = "10万 AGENCY_STORY_PREP", hash = joaat("SERVICE_EARN_AGENCY_STORY_PREP"), amount = 100000},
+    {name = "10万 WINTER_22_AWARD_DAILY_STASH", hash = joaat("SERVICE_EARN_WINTER_22_AWARD_DAILY_STASH"), amount = 100000},
+    {name = "10万 JUGGALO_PHONE_MISSION", hash = joaat("SERVICE_EARN_JUGGALO_PHONE_MISSION"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_GOLDEN_GUN", hash = joaat("SERVICE_EARN_AMBIENT_JOB_GOLDEN_GUN"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_URBAN_WARFARE", hash = joaat("SERVICE_EARN_AMBIENT_JOB_URBAN_WARFARE"), amount = 100000},
+    {name = "10万 AGENCY_PAYPHONE_HIT", hash = joaat("SERVICE_EARN_AGENCY_PAYPHONE_HIT"), amount = 100000},
+    {name = "10万 TUNER_AWARD_FREIGHT_TRAIN", hash = joaat("SERVICE_EARN_TUNER_AWARD_FREIGHT_TRAIN"), amount = 100000},
+    {name = "10万 WINTER_22_AWARD_DEAD_DROP", hash = joaat("SERVICE_EARN_WINTER_22_AWARD_DEAD_DROP"), amount = 100000},
+    {name = "10万 CLUBHOUSE_DUFFLE_BAG", hash = joaat("SERVICE_EARN_CLUBHOUSE_DUFFLE_BAG"), amount = 100000},
+    {name = "10万 WINTER_22_AWARD_RANDOM_EVENT", hash = joaat("SERVICE_EARN_WINTER_22_AWARD_RANDOM_EVENT"), amount = 100000},
+    {name = "10万 TUNER_AWARD_MILITARY_CONVOY", hash = joaat("SERVICE_EARN_TUNER_AWARD_MILITARY_CONVOY"), amount = 100000},
+    {name = "10万 JUGGALO_STORY_MISSION_PARTICIPATION", hash = joaat("SERVICE_EARN_JUGGALO_STORY_MISSION_PARTICIPATION"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_CRIME_SCENE", hash = joaat("SERVICE_EARN_AMBIENT_JOB_CRIME_SCENE"), amount = 100000},
+    {name = "10万 TUNER_AWARD_IAA_RAID", hash = joaat("SERVICE_EARN_TUNER_AWARD_IAA_RAID"), amount = 100000},
+    {name = "10万 ARENA_CAREER_TIER_PROGRESSION_4", hash = joaat("SERVICE_EARN_ARENA_CAREER_TIER_PROGRESSION_4"), amount = 100000},
+    {name = "10万 AUTO_SHOP_DELIVERY_AWARD", hash = joaat("SERVICE_EARN_AUTO_SHOP_DELIVERY_AWARD"), amount = 100000},
+    {name = "10万 CASINO_AWARD_TOP_PAIR", hash = joaat("SERVICE_EARN_CASINO_AWARD_TOP_PAIR"), amount = 100000},
+    {name = "10万 TUNER_AWARD_UNION_DEPOSITORY", hash = joaat("SERVICE_EARN_TUNER_AWARD_UNION_DEPOSITORY"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_UNDERWATER_CARGO", hash = joaat("SERVICE_EARN_AMBIENT_JOB_UNDERWATER_CARGO"), amount = 100000},
+    {name = "10万 COLLECTABLE_ITEM", hash = joaat("SERVICE_EARN_COLLECTABLE_ITEM"), amount = 100000},
+    {name = "10万 WINTER_22_AWARD_ACID_LAB", hash = joaat("SERVICE_EARN_WINTER_22_AWARD_ACID_LAB"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_MAZE_BANK", hash = joaat("SERVICE_EARN_AMBIENT_JOB_MAZE_BANK"), amount = 100000},
+    {name = "10万 GANGOPS_ELITE_XM_BASE", hash = joaat("SERVICE_EARN_GANGOPS_ELITE_XM_BASE"), amount = 100000},
+    {name = "10万 WINTER_22_AWARD_TAXI", hash = joaat("SERVICE_EARN_WINTER_22_AWARD_TAXI"), amount = 100000},
+    {name = "10万 TUNER_DAILY_VEHICLE_BONUS", hash = joaat("SERVICE_EARN_TUNER_DAILY_VEHICLE_BONUS"), amount = 100000},
+    {name = "10万 TUNER_AWARD_BUNKER_RAID", hash = joaat("SERVICE_EARN_TUNER_AWARD_BUNKER_RAID"), amount = 100000},
+    {name = "10万 AMBIENT_JOB_AMMUNATION_DELIVERY", hash = joaat("SERVICE_EARN_AMBIENT_JOB_AMMUNATION_DELIVERY"), amount = 100000},
+    {name = "9万 GANGOPS_SETUP", hash = joaat("SERVICE_EARN_GANGOPS_SETUP"), amount = 90000},
+    {name = "8万 AMBIENT_JOB_DEAD_DROP", hash = joaat("SERVICE_EARN_AMBIENT_JOB_DEAD_DROP"), amount = 80000},
+    {name = "8万 AMBIENT_JOB_HOT_TARGET_DELIVER", hash = joaat("SERVICE_EARN_AMBIENT_JOB_HOT_TARGET_DELIVER"), amount = 80000},
+    {name = "7.5万 ARENA_CAREER_TIER_PROGRESSION_3", hash = joaat("SERVICE_EARN_ARENA_CAREER_TIER_PROGRESSION_3"), amount = 75000},
+    {name = "7万 AMBIENT_JOB_XMAS_MUGGER", hash = joaat("SERVICE_EARN_AMBIENT_JOB_XMAS_MUGGER"), amount = 70000},
+    {name = "6.5万 IMPORT_EXPORT", hash = joaat("SERVICE_EARN_IMPORT_EXPORT"), amount = 65000},
+    {name = "5万 FROM_CLUB_MANAGEMENT_PARTICIPATION", hash = joaat("SERVICE_EARN_FROM_CLUB_MANAGEMENT_PARTICIPATION"), amount = 60000},
+    {name = "5万 NIGHTCLUB_DANCING_AWARD", hash = joaat("SERVICE_EARN_NIGHTCLUB_DANCING_AWARD"), amount = 60000},
+    {name = "5万 ARENA_CAREER_TIER_PROGRESSION_2", hash = joaat("SERVICE_EARN_ARENA_CAREER_TIER_PROGRESSION_2"), amount = 55000},
+    {name = "5万 FROM_BUSINESS_BATTLE", hash = joaat("SERVICE_EARN_FROM_BUSINESS_BATTLE"), amount = 50000},
+    {name = "5万 ISLAND_HEIST_DJ_MISSION", hash = joaat("SERVICE_EARN_ISLAND_HEIST_DJ_MISSION"), amount = 50000},
+    {name = "5万 ARENA_SKILL_LVL_AWARD", hash = joaat("SERVICE_EARN_ARENA_SKILL_LVL_AWARD"), amount = 50000},
+    {name = "5万 AMBIENT_JOB_GANG_CONVOY", hash = joaat("SERVICE_EARN_AMBIENT_JOB_GANG_CONVOY"), amount = 50000},
+    {name = "5万 COLLECTABLES_SIGNAL_JAMMERS_COMPLETE", hash = joaat("SERVICE_EARN_COLLECTABLES_SIGNAL_JAMMERS_COMPLETE"), amount = 50000},
+    {name = "5万 AMBIENT_JOB_HELI_HOT_TARGET", hash = joaat("SERVICE_EARN_AMBIENT_JOB_HELI_HOT_TARGET"), amount = 50000},
+    {name = "5万 ACID_LAB_SELL_PARTICIPATION", hash = joaat("SERVICE_EARN_ACID_LAB_SELL_PARTICIPATION"), amount = 50000},
+    {name = "5万 FROM_CONTRABAND", hash = joaat("SERVICE_EARN_FROM_CONTRABAND"), amount = 50000},
+    {name = "5万 CASINO_AWARD_HIGH_ROLLER_GOLD", hash = joaat("SERVICE_EARN_CASINO_AWARD_HIGH_ROLLER_GOLD"), amount = 50000},
+    {name = "5万 CASINO_AWARD_MISSION_THREE_FIRST_TIME", hash = joaat("SERVICE_EARN_CASINO_AWARD_MISSION_THREE_FIRST_TIME"), amount = 50000},
+    {name = "5万 GOON", hash = joaat("SERVICE_EARN_GOON"), amount = 50000},
+    {name = "5万 FIXER_AWARD_PHONE_HIT", hash = joaat("SERVICE_EARN_FIXER_AWARD_PHONE_HIT"), amount = 50000},
+    {name = "5万 CASINO_AWARD_MISSION_FOUR_FIRST_TIME", hash = joaat("SERVICE_EARN_CASINO_AWARD_MISSION_FOUR_FIRST_TIME"), amount = 50000},
+    {name = "5万 TAXI_JOB", hash = joaat("SERVICE_EARN_TAXI_JOB"), amount = 50000},
+    {name = "5万 CASINO_AWARD_MISSION_ONE_FIRST_TIME", hash = joaat("SERVICE_EARN_CASINO_AWARD_MISSION_ONE_FIRST_TIME"), amount = 50000},
+    {name = "5万 AMBIENT_JOB_SHOP_ROBBERY", hash = joaat("SERVICE_EARN_AMBIENT_JOB_SHOP_ROBBERY"), amount = 50000},
+    {name = "5万 ARENA_WAR", hash = joaat("SERVICE_EARN_ARENA_WAR"), amount = 50000},
+    {name = "5万 CASINO_AWARD_MISSION_FIVE_FIRST_TIME", hash = joaat("SERVICE_EARN_CASINO_AWARD_MISSION_FIVE_FIRST_TIME"), amount = 50000},
+    {name = "5万 CASINO_AWARD_LUCKY_LUCKY", hash = joaat("SERVICE_EARN_CASINO_AWARD_LUCKY_LUCKY"), amount = 50000},
+    {name = "5万 AMBIENT_JOB_PASS_PARCEL", hash = joaat("SERVICE_EARN_AMBIENT_JOB_PASS_PARCEL"), amount = 50000},
+    {name = "5万 TUNER_CAR_CLUB_MEMBERSHIP", hash = joaat("SERVICE_EARN_TUNER_CAR_CLUB_MEMBERSHIP"), amount = 50000},
+    {name = "5万 CASINO_AWARD_MISSION_TWO_FIRST_TIME", hash = joaat("SERVICE_EARN_CASINO_AWARD_MISSION_TWO_FIRST_TIME"), amount = 50000},
+    {name = "5万 AMBIENT_JOB_HOT_TARGET_KILL", hash = joaat("SERVICE_EARN_AMBIENT_JOB_HOT_TARGET_KILL"), amount = 50000}
+}
+
+for i, v in ipairs(Options) do
+    menu.add_feature(v.name, "action", singleopmoney, function()
+        trigger_transaction(v.hash, v.amount)
+    end)
+end
